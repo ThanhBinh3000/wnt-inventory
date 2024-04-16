@@ -10,6 +10,7 @@ import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.Profile;
+import vn.com.gsoft.inventory.model.system.WrapData;
 import vn.com.gsoft.inventory.repository.KhachHangsRepository;
 import vn.com.gsoft.inventory.repository.NhaCungCapsRepository;
 import vn.com.gsoft.inventory.repository.PhieuXuatChiTietsRepository;
@@ -192,14 +193,17 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {
-        String topicName = "inventory-xuat-topic";
+        String topicName = "inventory-topic";
         Gson gson = new Gson();
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
+            WrapData data = new WrapData();
             PhieuXuats px = new PhieuXuats();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
-            this.kafkaProducer.sendInternal(topicName, key, gson.toJson(px));
+            data.setCode("xuat");
+            data.setData(px);
+            this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
         }
     }
 }
