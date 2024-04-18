@@ -6,6 +6,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.ENoteType;
+import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
@@ -201,7 +202,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             PhieuXuats px = new PhieuXuats();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
-            data.setCode("xuat");
+            data.setCode(InventoryConstant.XUAT);
             data.setSendDate(new Date());
             data.setData(px);
             this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
