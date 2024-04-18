@@ -202,6 +202,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
             data.setCode("xuat");
+            data.setSendDate(new Date());
             data.setData(px);
             this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
         }
