@@ -9,6 +9,7 @@ import vn.com.gsoft.inventory.entity.PhieuNhaps;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNhapsReq, Long> {
@@ -102,5 +103,10 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " ORDER BY c.id desc"
     )
     List<PhieuNhaps> searchList(@Param("param") PhieuNhapsReq param);
+
+    Optional<PhieuNhaps> findBySoPhieuNhapAndLoaiXuatNhapMaLoaiXuatNhapAndNhaThuocMaNhaThuoc(Long soPhieuNhap,Long loaiXuatNhapMaLoaiXuatNhap,String nhaThuocMaNhaThuoc);
+
+    @Query("SELECT MAX(px.soPhieuNhap) FROM PhieuNhaps px where px.nhaThuocMaNhaThuoc = ?1 and px.loaiXuatNhapMaLoaiXuatNhap=?2 ")
+    Long findBySoPhieuNhapMax(String nhaThuocMaNhaThuoc, Long maLoaiXuatNhap);
 
 }

@@ -16,19 +16,17 @@ import vn.com.gsoft.inventory.util.system.ResponseUtils;
 
 @Slf4j
 @RestController
-@RequestMapping("/phieu-nhaps")
+@RequestMapping(PathContains.URL_PHIEU_NHAPS)
 public class PhieuNhapsController {
 
     @Autowired
     PhieuNhapsService service;
-
 
     @PostMapping(value = PathContains.URL_SEARCH_PAGE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> colection(@RequestBody PhieuNhapsReq objReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.searchPage(objReq)));
     }
-
 
     @PostMapping(value = PathContains.URL_SEARCH_LIST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -38,9 +36,8 @@ public class PhieuNhapsController {
 
     @PostMapping(value = PathContains.URL_INIT, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<BaseResponse> init(@RequestParam(value = "maLoaiXuatNhap", required = true) Integer maLoaiXuatNhap,
-                                             @RequestParam(value = "id", required = false) Long id) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.init(maLoaiXuatNhap, id)));
+    public ResponseEntity<BaseResponse> init(@RequestBody PhieuNhapsReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.init(objReq.getLoaiXuatNhapMaLoaiXuatNhap(), objReq.getId())));
     }
 
     @PostMapping(value = PathContains.URL_CREATE, produces = MediaType.APPLICATION_JSON_VALUE)

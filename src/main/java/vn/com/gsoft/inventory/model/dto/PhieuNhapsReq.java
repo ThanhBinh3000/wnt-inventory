@@ -1,10 +1,13 @@
 package vn.com.gsoft.inventory.model.dto;
 
 import lombok.Data;
+import vn.com.gsoft.inventory.entity.PhieuNhapChiTiets;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -16,7 +19,7 @@ public class PhieuNhapsReq extends BaseRequest {
     private BigDecimal tongTien;
     private BigDecimal daTra;
     private String nhaThuocMaNhaThuoc;
-    private Integer loaiXuatNhapMaLoaiXuatNhap;
+    private Long loaiXuatNhapMaLoaiXuatNhap;
     private Long nhaCungCapMaNhaCungCap;
     private Long khachHangMaKhachHang;
     private Boolean active;
@@ -58,4 +61,6 @@ public class PhieuNhapsReq extends BaseRequest {
     private String linkFile;
     private BigDecimal discount;
     private Long targetManagementId;
+
+    private List<PhieuNhapChiTiets> children = new ArrayList<>();
 }

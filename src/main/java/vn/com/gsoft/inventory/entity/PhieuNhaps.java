@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -37,7 +39,7 @@ public class PhieuNhaps extends BaseEntity {
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc;
     @Column(name = "LoaiXuatNhap_MaLoaiXuatNhap")
-    private Integer loaiXuatNhapMaLoaiXuatNhap;
+    private Long loaiXuatNhapMaLoaiXuatNhap;
     @Column(name = "NhaCungCap_MaNhaCungCap")
     private Long nhaCungCapMaNhaCungCap;
     @Column(name = "KhachHang_MaKhachHang")
@@ -123,5 +125,8 @@ public class PhieuNhaps extends BaseEntity {
     private BigDecimal discount;
     @Column(name = "TargetManagementId")
     private Long targetManagementId;
+
+    @Transient
+    private List<PhieuNhapChiTiets> children = new ArrayList<>();
 }
 

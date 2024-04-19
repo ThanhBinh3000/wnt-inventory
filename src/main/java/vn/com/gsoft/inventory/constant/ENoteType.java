@@ -4,7 +4,7 @@ public class ENoteType {
     /// <summary>
     /// Receipt  - Nhập kho
     /// </summary>
-    public static final Integer Receipt = 1;
+    public static final Long Receipt = 1L;
 
     /// <summary>
     /// Delivery

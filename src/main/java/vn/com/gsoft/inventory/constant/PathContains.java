@@ -11,4 +11,6 @@ public class PathContains {
 
     public static final String URL_DELETE = "/delete";
 
+    public static final String URL_PHIEU_NHAPS = "/phieu-nhap";
+
 }
