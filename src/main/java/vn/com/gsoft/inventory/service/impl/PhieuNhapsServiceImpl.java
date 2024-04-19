@@ -1,23 +1,30 @@
 package vn.com.gsoft.inventory.service.impl;
 
+import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.ENoteType;
+import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.Profile;
+import vn.com.gsoft.inventory.model.system.WrapData;
 import vn.com.gsoft.inventory.repository.NhaCungCapsRepository;
 import vn.com.gsoft.inventory.repository.PhieuNhapChiTietsRepository;
 import vn.com.gsoft.inventory.repository.PhieuNhapsRepository;
 import vn.com.gsoft.inventory.service.ApplicationSettingService;
+import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 
 @Service
@@ -31,6 +38,9 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private PhieuNhapChiTietsRepository dtlRepo;
     @Autowired
     private NhaCungCapsRepository nhaCungCapsRepository;
+    private KafkaProducer kafkaProducer;
+    @Value("${wnt.kafka.internal.consumer.topic.inventory}")
+    private String topicName;
 
     @Autowired
     public PhieuNhapsServiceImpl(PhieuNhapsRepository hdrRepo) {
@@ -116,20 +126,20 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         PhieuNhaps save = hdrRepo.save(hdr);
 
         List<PhieuNhapChiTiets> phieuNhapChiTiets = saveChildren(save.getId(), req);
-        save.setChildren(phieuNhapChiTiets);
-//        updateInventory(e);
+        save.setChiTiets(phieuNhapChiTiets);
+        updateInventory(hdr);
         return save;
     }
 
     private List<PhieuNhapChiTiets> saveChildren(Long idHdr, PhieuNhapsReq req){
         // save chi tiết
-        for(PhieuNhapChiTiets chiTiet : req.getChildren()){
+        for(PhieuNhapChiTiets chiTiet : req.getChiTiets()){
             chiTiet.setChietKhau(BigDecimal.valueOf(0));
             chiTiet.setPhieuNhapMaPhieuNhap(idHdr);
             chiTiet.setIsModified(false);
         }
-        this.dtlRepo.saveAll(req.getChildren());
-        return req.getChildren();
+        this.dtlRepo.saveAll(req.getChiTiets());
+        return req.getChiTiets();
     }
 
     @Override
@@ -140,6 +150,21 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     @Override
     public PhieuNhaps updateByPhieuXuats(PhieuXuats e) {
         return null;
+    }
+
+    private void updateInventory(PhieuNhaps e) throws ExecutionException, InterruptedException, TimeoutException {
+        Gson gson = new Gson();
+        for (PhieuNhapChiTiets chiTiet : e.getChiTiets()) {
+            String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
+            WrapData data = new WrapData();
+            PhieuNhaps px = new PhieuNhaps();
+            BeanUtils.copyProperties(e, px);
+            px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
+            data.setCode(InventoryConstant.NHAP);
+            data.setSendDate(new Date());
+            data.setData(px);
+            this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
+        }
     }
 
 }

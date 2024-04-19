@@ -62,5 +62,5 @@ public class PhieuNhapsReq extends BaseRequest {
     private BigDecimal discount;
     private Long targetManagementId;
 
-    private List<PhieuNhapChiTiets> children = new ArrayList<>();
+    private List<PhieuNhapChiTiets> chiTiets = new ArrayList<>();
 }
