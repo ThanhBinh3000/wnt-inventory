@@ -127,6 +127,6 @@ public class PhieuNhaps extends BaseEntity {
     private Long targetManagementId;
 
     @Transient
-    private List<PhieuNhapChiTiets> children = new ArrayList<>();
+    private List<PhieuNhapChiTiets> chiTiets;
 }
 

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
@@ -36,6 +37,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private NhaCungCapsRepository nhaCungCapsRepository;
     private PhieuNhapsService phieuNhapsService;
     private KafkaProducer kafkaProducer;
+    @Value("${wnt.kafka.internal.consumer.topic.inventory}")
+    private String topicName;
 
     @Autowired
     public PhieuXuatsServiceImpl(PhieuXuatsRepository hdrRepo, ApplicationSettingService applicationSettingService,
@@ -194,7 +197,6 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {
-        String topicName = "inventory-topic";
         Gson gson = new Gson();
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
