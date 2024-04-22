@@ -38,6 +38,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private PhieuNhapChiTietsRepository dtlRepo;
     @Autowired
     private NhaCungCapsRepository nhaCungCapsRepository;
+    @Autowired
     private KafkaProducer kafkaProducer;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
@@ -111,7 +112,6 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
-        req.setLoaiXuatNhapMaLoaiXuatNhap(ENoteType.Receipt);
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         req.setIsModified(false);
         req.setVat(0);
@@ -150,6 +150,26 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     @Override
     public PhieuNhaps updateByPhieuXuats(PhieuXuats e) {
         return null;
+    }
+
+
+    @Override
+    public PhieuNhaps detail(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }else {
+            if(optional.get().getRecordStatusId() != RecordStatusContains.ACTIVE){
+                throw new Exception("Không tìm thấy dữ liệu.");
+            }
+        }
+        PhieuNhaps phieuNhaps = optional.get();
+        phieuNhaps.setChiTiets(dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId()));
+        return optional.get();
     }
 
     private void updateInventory(PhieuNhaps e) throws ExecutionException, InterruptedException, TimeoutException {
