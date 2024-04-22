@@ -18,7 +18,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @Table(name = "Inventory")
-public class Inventory {
+public class Inventory{
     @Id
     @Column(name = "id")
     private Long id;

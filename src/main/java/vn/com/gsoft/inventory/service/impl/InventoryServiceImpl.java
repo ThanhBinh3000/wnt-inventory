@@ -1,0 +1,47 @@
+package vn.com.gsoft.inventory.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import vn.com.gsoft.inventory.constant.RecordStatusContains;
+import vn.com.gsoft.inventory.entity.Inventory;
+import vn.com.gsoft.inventory.model.dto.InventoryReq;
+import vn.com.gsoft.inventory.model.system.Profile;
+import vn.com.gsoft.inventory.repository.InventoryRepository;
+import vn.com.gsoft.inventory.service.InventoryService;
+
+import java.util.List;
+
+@Service
+public class InventoryServiceImpl implements InventoryService {
+    private InventoryRepository hdrRepo;
+
+    @Autowired
+    public InventoryServiceImpl(InventoryRepository repository) {
+        this.hdrRepo = repository;
+    }
+
+    public Profile getLoggedUser() throws Exception {
+        try {
+            return (Profile) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        } catch (Exception ex) {
+            throw new Exception("Token invalid!");
+        }
+    }
+
+    @Override
+    public Page<Inventory> searchPage(InventoryReq req) throws Exception {
+        Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
+        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        return hdrRepo.searchPage(req, pageable);
+    }
+
+    @Override
+    public List<Inventory> searchList(InventoryReq req) throws Exception {
+        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        return hdrRepo.searchList(req);
+    }
+}
