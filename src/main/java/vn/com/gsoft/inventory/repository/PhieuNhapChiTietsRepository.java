@@ -11,7 +11,7 @@ import vn.com.gsoft.inventory.model.dto.PhieuNhapChiTietsReq;
 import java.util.List;
 
 @Repository
-public interface PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapChiTiets, PhieuNhapChiTietsReq, Long> {
+public interface  PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapChiTiets, PhieuNhapChiTietsReq, Long> {
   @Query("SELECT c FROM PhieuNhapChiTiets c " +
          "WHERE 1=1 "
           + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
@@ -100,5 +100,7 @@ public interface PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapChi
           + " ORDER BY c.id desc"
   )
   List<PhieuNhapChiTiets> searchList(@Param("param") PhieuNhapChiTietsReq param);
+
+  List<PhieuNhapChiTiets> findAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
 
 }
