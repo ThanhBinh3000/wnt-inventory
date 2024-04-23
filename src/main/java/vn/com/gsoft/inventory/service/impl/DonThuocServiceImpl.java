@@ -1,11 +1,13 @@
 package vn.com.gsoft.inventory.service.impl;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.Thuocs;
@@ -17,6 +19,7 @@ import vn.com.gsoft.inventory.repository.ThuocsRepository;
 import vn.com.gsoft.inventory.service.DonThuocService;
 import vn.com.gsoft.inventory.constant.AppConstants;
 
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +50,8 @@ public class DonThuocServiceImpl implements DonThuocService {
         String appKey = AppConstants.DefaultStoreCodeDemo.equals(objReq.getStoreCode()) || "NTPK".equals(objReq.getStoreCode()) ? "844G9yb0lYWYfs59MFv6QiqTF11JYfKl9KMXKVsslbjkyt2WGGjas2t3lplk" :
                 this.appKey;
         String apiUrl = AppConstants.DefaultStoreCodeDemo.equals(objReq.getStoreCode()) || "NTPK".equals(objReq.getStoreCode()) ?
-                String.format("http://beta.donthuocquocgia.vn/api/v1/thong-tin-don-thuoc/{0}", objReq.getCode()) :
-                String.format("https://donthuocquocgia.vn/api/v1/thong-tin-don-thuoc/{0}", objReq.getCode());
+                String.format("http://beta.donthuocquocgia.vn/api/v1/thong-tin-don-thuoc/%s", URLEncoder.encode(objReq.getCode(), "UTF-8")) :
+                String.format("https://donthuocquocgia.vn/api/v1/thong-tin-don-thuoc/%s", URLEncoder.encode(objReq.getCode(), "UTF-8"));
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -64,13 +67,14 @@ public class DonThuocServiceImpl implements DonThuocService {
                     entity,
                     String.class);
             System.out.println(response.getBody());
-        }catch (Exception e){
+            note = new Gson().fromJson(response.getBody(), DonThuocRes.class);
+        } catch (HttpClientErrorException.NotFound n) {
+            throw new Exception("Không tìm thấy đơn thuốc!");
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
 
-//        note = response.getBody();
-        assert note != null;
         note.setNgayGioKeDon(note.getNgayGioKeDon() == null ? null : new SimpleDateFormat("dd/MM/yyyy hh: mm: ss").format(note.getNgayGioKeDon()));
 
         List<String> codes = note.getThongTinDonThuoc().stream()
