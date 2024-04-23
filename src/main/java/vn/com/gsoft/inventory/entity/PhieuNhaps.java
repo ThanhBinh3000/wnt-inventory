@@ -128,5 +128,17 @@ public class PhieuNhaps extends BaseEntity {
 
     @Transient
     private List<PhieuNhapChiTiets> chiTiets;
+
+    @Transient
+    private String tenNhaCungCap;
+
+    @Transient
+    private String tenKhachHang;
+
+    @Transient
+    private String tenPaymentType;
+
+    @Transient
+    private String tenNguoiTao;
 }
 

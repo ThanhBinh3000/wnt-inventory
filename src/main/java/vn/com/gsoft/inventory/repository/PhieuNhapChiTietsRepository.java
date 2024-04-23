@@ -103,4 +103,6 @@ public interface  PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapCh
 
   List<PhieuNhapChiTiets> findAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
 
+  void deleteAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
+
 }

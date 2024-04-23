@@ -19,9 +19,6 @@ public class NhaCungCaps extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
-
-    @Column(name = "MaNhaCungCap")
-    private Integer maNhaCungCap;
     @Column(name = "TenNhaCungCap")
     private String tenNhaCungCap;
     @Column(name = "DiaChi")

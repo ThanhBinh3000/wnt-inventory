@@ -27,7 +27,7 @@ public class PhieuNhapChiTiets {
     @Column(name = "Thuoc_ThuocId")
     private Long thuocThuocId;
     @Column(name = "DonViTinh_MaDonViTinh")
-    private Integer donViTinhMaDonViTinh;
+    private Long donViTinhMaDonViTinh;
     @Column(name = "ChietKhau")
     private BigDecimal chietKhau;
     @Column(name = "GiaNhap")
@@ -108,5 +108,12 @@ public class PhieuNhapChiTiets {
     private String decscription;
     @Column(name = "StorageConditions")
     private String storageConditions;
-}
+
+    @Transient
+    private Thuocs thuocs;
+
+    @Transient
+    private String tenDonViTinh;
+
+    }
 

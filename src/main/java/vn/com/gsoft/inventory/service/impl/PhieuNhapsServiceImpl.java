@@ -14,9 +14,7 @@ import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
-import vn.com.gsoft.inventory.repository.NhaCungCapsRepository;
-import vn.com.gsoft.inventory.repository.PhieuNhapChiTietsRepository;
-import vn.com.gsoft.inventory.repository.PhieuNhapsRepository;
+import vn.com.gsoft.inventory.repository.*;
 import vn.com.gsoft.inventory.service.ApplicationSettingService;
 import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
@@ -30,6 +28,8 @@ import java.util.concurrent.TimeoutException;
 @Service
 @Log4j2
 public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhapsReq, Long> implements PhieuNhapsService {
+    private final PaymentTypeRepository paymentTypeRepository;
+    private final KhachHangsRepository khachHangsRepository;
 
     @Autowired
     private PhieuNhapsRepository hdrRepo;
@@ -39,14 +39,24 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     @Autowired
     private NhaCungCapsRepository nhaCungCapsRepository;
     @Autowired
+    private ThuocsRepository thuocsRepository;
+    @Autowired
+    private DonViTinhsRepository donViTinhsRepository;
+    @Autowired
     private KafkaProducer kafkaProducer;
+    @Autowired
+    private UserProfileRepository userProfileRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
 
     @Autowired
-    public PhieuNhapsServiceImpl(PhieuNhapsRepository hdrRepo) {
+    public PhieuNhapsServiceImpl(PhieuNhapsRepository hdrRepo,
+                                 KhachHangsRepository khachHangsRepository,
+                                 PaymentTypeRepository paymentTypeRepository) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
+        this.khachHangsRepository = khachHangsRepository;
+        this.paymentTypeRepository = paymentTypeRepository;
     }
 
     @Override
@@ -124,6 +134,35 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         hdr.setCreated(new Date());
         hdr.setCreatedByUserId(getLoggedUser().getId());
         PhieuNhaps save = hdrRepo.save(hdr);
+        List<PhieuNhapChiTiets> phieuNhapChiTiets = saveChildren(save.getId(), req);
+        save.setChiTiets(phieuNhapChiTiets);
+        updateInventory(hdr);
+        return save;
+    }
+
+    @Override
+    public PhieuNhaps update(PhieuNhapsReq req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+        Optional<PhieuNhaps> optional = hdrRepo.findById(req.getId());
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        PhieuNhaps hdr = optional.get();
+        if(!Objects.equals(req.getSoPhieuNhap(), hdr.getSoPhieuNhap())){
+            Optional<PhieuNhaps> phieuXuat = hdrRepo.findBySoPhieuNhapAndLoaiXuatNhapMaLoaiXuatNhapAndNhaThuocMaNhaThuoc(req.getSoPhieuNhap(), req.getLoaiXuatNhapMaLoaiXuatNhap(),req.getNhaThuocMaNhaThuoc());
+            if (phieuXuat.isPresent()) {
+                throw new Exception("Số phiếu đã tồn tại!");
+            }
+        }
+        BeanUtils.copyProperties(req, hdr, "id", "created", "createdByUserId");
+        hdr.setModified(new Date());
+        hdr.setModifiedByUserId(getLoggedUser().getId());
+        hdr.setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdr.setIsModified(true);
+        hdr.setVat(0);
+        PhieuNhaps save = hdrRepo.save(hdr);
 
         List<PhieuNhapChiTiets> phieuNhapChiTiets = saveChildren(save.getId(), req);
         save.setChiTiets(phieuNhapChiTiets);
@@ -133,6 +172,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
 
     private List<PhieuNhapChiTiets> saveChildren(Long idHdr, PhieuNhapsReq req){
         // save chi tiết
+        dtlRepo.deleteAllByPhieuNhapMaPhieuNhap(idHdr);
         for(PhieuNhapChiTiets chiTiet : req.getChiTiets()){
             chiTiet.setChietKhau(BigDecimal.valueOf(0));
             chiTiet.setPhieuNhapMaPhieuNhap(idHdr);
@@ -168,8 +208,27 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             }
         }
         PhieuNhaps phieuNhaps = optional.get();
-        phieuNhaps.setChiTiets(dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId()));
-        return optional.get();
+        List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
+        allByPhieuNhapMaPhieuNhap.forEach(item -> {
+            Optional<Thuocs> byId = thuocsRepository.findById(item.getThuocThuocId());
+            byId.ifPresent(item::setThuocs);
+            Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(item.getDonViTinhMaDonViTinh());
+            byId1.ifPresent(donViTinhs -> item.setTenDonViTinh(donViTinhs.getTenDonViTinh()));
+        });
+        if(phieuNhaps.getNhaCungCapMaNhaCungCap() != null){
+            Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(phieuNhaps.getNhaCungCapMaNhaCungCap());
+            byId.ifPresent(nhaCungCaps -> phieuNhaps.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
+        }
+        if(phieuNhaps.getKhachHangMaKhachHang() != null){
+            Optional<KhachHangs> byId = khachHangsRepository.findById(phieuNhaps.getKhachHangMaKhachHang());
+            byId.ifPresent(khachHangs -> phieuNhaps.setTenKhachHang(khachHangs.getTenKhachHang()));
+        }
+        Optional<PaymentType> byId = paymentTypeRepository.findById(phieuNhaps.getPaymentTypeId());
+        byId.ifPresent(paymentType -> phieuNhaps.setTenPaymentType(paymentType.getDisplayName()));
+        phieuNhaps.setChiTiets(allByPhieuNhapMaPhieuNhap);
+        Optional<UserProfile> byId1 = userProfileRepository.findById(phieuNhaps.getCreatedByUserId());
+        byId1.ifPresent(userProfile -> phieuNhaps.setTenNguoiTao(userProfile.getTenDayDu()));
+        return phieuNhaps;
     }
 
     private void updateInventory(PhieuNhaps e) throws ExecutionException, InterruptedException, TimeoutException {

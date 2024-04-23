@@ -14,6 +14,7 @@ import vn.com.gsoft.inventory.repository.InventoryRepository;
 import vn.com.gsoft.inventory.service.InventoryService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {
@@ -43,5 +44,12 @@ public class InventoryServiceImpl implements InventoryService {
     public List<Inventory> searchList(InventoryReq req) throws Exception {
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         return hdrRepo.searchList(req);
+    }
+
+    @Override
+    public Inventory searchDetail(InventoryReq req) throws Exception {
+        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        Optional<Inventory> inventory = hdrRepo.searchDetail(req);
+        return inventory.orElse(null);
     }
 }

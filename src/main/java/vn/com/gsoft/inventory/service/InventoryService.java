@@ -10,4 +10,6 @@ public interface InventoryService {
     Page<Inventory> searchPage(InventoryReq req) throws Exception;
 
     List<Inventory> searchList(InventoryReq req) throws Exception;
+
+    Inventory searchDetail(InventoryReq req) throws Exception;
 }
