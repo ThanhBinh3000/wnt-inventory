@@ -15,7 +15,6 @@ import java.util.Optional;
 public interface NhaCungCapsRepository extends BaseRepository<NhaCungCaps, NhaCungCapsReq, Long> {
   @Query("SELECT c FROM NhaCungCaps c " +
          "WHERE 1=1 "
-          + " AND (:#{#param.maNhaCungCap} IS NULL OR c.maNhaCungCap = :#{#param.maNhaCungCap}) "
           + " AND (:#{#param.tenNhaCungCap} IS NULL OR lower(c.tenNhaCungCap) LIKE lower(concat('%',CONCAT(:#{#param.tenNhaCungCap},'%'))))"
           + " AND (:#{#param.diaChi} IS NULL OR lower(c.diaChi) LIKE lower(concat('%',CONCAT(:#{#param.diaChi},'%'))))"
           + " AND (:#{#param.soDienThoai} IS NULL OR lower(c.soDienThoai) LIKE lower(concat('%',CONCAT(:#{#param.soDienThoai},'%'))))"
@@ -43,14 +42,13 @@ public interface NhaCungCapsRepository extends BaseRepository<NhaCungCaps, NhaCu
           + " AND (:#{#param.code} IS NULL OR lower(c.code) LIKE lower(concat('%',CONCAT(:#{#param.code},'%'))))"
           + " AND (:#{#param.mappingStoreId} IS NULL OR c.mappingStoreId = :#{#param.mappingStoreId}) "
           + " AND (:#{#param.isOrganization} IS NULL OR c.isOrganization = :#{#param.isOrganization}) "
-          + " ORDER BY c.maNhaCungCap desc"
+          + " ORDER BY c.id desc"
   )
   Page<NhaCungCaps> searchPage(@Param("param") NhaCungCapsReq param, Pageable pageable);
   
   
   @Query("SELECT c FROM NhaCungCaps c " +
          "WHERE 1=1 "
-          + " AND (:#{#param.maNhaCungCap} IS NULL OR c.maNhaCungCap = :#{#param.maNhaCungCap}) "
           + " AND (:#{#param.tenNhaCungCap} IS NULL OR lower(c.tenNhaCungCap) LIKE lower(concat('%',CONCAT(:#{#param.tenNhaCungCap},'%'))))"
           + " AND (:#{#param.diaChi} IS NULL OR lower(c.diaChi) LIKE lower(concat('%',CONCAT(:#{#param.diaChi},'%'))))"
           + " AND (:#{#param.soDienThoai} IS NULL OR lower(c.soDienThoai) LIKE lower(concat('%',CONCAT(:#{#param.soDienThoai},'%'))))"
@@ -78,7 +76,7 @@ public interface NhaCungCapsRepository extends BaseRepository<NhaCungCaps, NhaCu
           + " AND (:#{#param.code} IS NULL OR lower(c.code) LIKE lower(concat('%',CONCAT(:#{#param.code},'%'))))"
           + " AND (:#{#param.mappingStoreId} IS NULL OR c.mappingStoreId = :#{#param.mappingStoreId}) "
           + " AND (:#{#param.isOrganization} IS NULL OR c.isOrganization = :#{#param.isOrganization}) "
-          + " ORDER BY c.maNhaCungCap desc"
+          + " ORDER BY c.id desc"
   )
   List<NhaCungCaps> searchList(@Param("param") NhaCungCapsReq param);
   @Query("SELECT ncc FROM NhaCungCaps ncc where ncc.supplierTypeId=1 and ncc.maNhaThuoc= ?1 ")

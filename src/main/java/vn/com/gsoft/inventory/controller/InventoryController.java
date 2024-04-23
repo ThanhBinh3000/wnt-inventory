@@ -30,4 +30,10 @@ public class InventoryController {
     public ResponseEntity<BaseResponse> colectionList(@RequestBody InventoryReq objReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.searchList(objReq)));
     }
+
+    @PostMapping(value = PathContains.URL_SEARCH_DETAIL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> colectionDetail(@RequestBody InventoryReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.searchDetail(objReq)));
+    }
 }
