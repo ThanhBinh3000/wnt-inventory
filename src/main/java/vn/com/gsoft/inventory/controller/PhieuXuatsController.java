@@ -42,9 +42,8 @@ public class PhieuXuatsController {
 
     @PostMapping(value = PathContains.URL_INIT, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<BaseResponse> init(@RequestParam(value = "maLoaiXuatNhap", required = true) Integer maLoaiXuatNhap,
-                                             @RequestParam(value = "id", required = false) Long id) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.init(maLoaiXuatNhap, id)));
+    public ResponseEntity<BaseResponse> init(@RequestBody PhieuXuatsReq objReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.init(objReq.getMaLoaiXuatNhap(), objReq.getId())));
     }
 
     @PostMapping(value = PathContains.URL_CREATE, produces = MediaType.APPLICATION_JSON_VALUE)

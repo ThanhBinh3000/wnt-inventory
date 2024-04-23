@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import vn.com.gsoft.inventory.entity.Thuocs;
 import vn.com.gsoft.inventory.model.dto.ThuocsReq;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -224,4 +225,6 @@ public interface ThuocsRepository extends BaseRepository<Thuocs, ThuocsReq, Long
             + " ORDER BY c.id desc"
     )
     List<Thuocs> searchList(@Param("param") ThuocsReq param);
+
+    List<Thuocs> findByNhaThuocMaNhaThuocAndConnectivityCodeInAndRecordStatusId(String maNhaThuoc, List<String> codes, long active);
 }
