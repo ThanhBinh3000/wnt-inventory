@@ -5,6 +5,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
@@ -54,7 +57,20 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.kafkaProducer = kafkaProducer;
         this.phieuXuatChiTietsRepository = phieuXuatChiTietsRepository;
     }
+    @Override
+    public Page<PhieuXuats> searchPage(PhieuXuatsReq req) throws Exception {
+        Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
+        req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        return hdrRepo.searchPage(req, pageable);
+    }
 
+    @Override
+    public List<PhieuXuats> searchList(PhieuXuatsReq req) throws Exception {
+        req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        return hdrRepo.searchList(req);
+    }
     @Override
     public PhieuXuats init(Integer maLoaiXuatNhap, Long id) throws Exception {
         Profile currUser = getLoggedUser();
