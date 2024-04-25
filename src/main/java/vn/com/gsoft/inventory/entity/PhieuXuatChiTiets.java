@@ -114,6 +114,8 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private BigDecimal outOwnerPriceChild;
 
     @Transient
-    private String imageData;
+    private String imageThumbData;
+    @Transient
+    private String imagePreviewData;
 }
 
