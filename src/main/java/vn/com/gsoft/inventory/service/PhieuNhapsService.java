@@ -13,4 +13,8 @@ public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq
     PhieuNhaps updateByPhieuXuats(PhieuXuats e);
 
     PhieuNhaps init(Long maLoaiXuatNhap, Long id) throws Exception;
+
+    PhieuNhaps lock(Long id) throws Exception;
+
+    PhieuNhaps unlock(Long id) throws Exception;
 }

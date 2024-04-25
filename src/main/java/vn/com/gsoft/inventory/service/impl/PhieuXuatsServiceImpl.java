@@ -146,6 +146,22 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
+    public PhieuXuats lock(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setLocked(true);
+        hdrRepo.save(detail);
+        return detail;
+    }
+
+    @Override
+    public PhieuXuats unlock(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setLocked(false);
+        hdrRepo.save(detail);
+        return detail;
+    }
+
+    @Override
     @Transactional
     public PhieuXuats create(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();

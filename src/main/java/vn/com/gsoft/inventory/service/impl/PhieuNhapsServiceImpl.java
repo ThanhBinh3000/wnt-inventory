@@ -133,6 +133,22 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     @Override
+    public PhieuNhaps lock(Long id) throws Exception {
+        PhieuNhaps detail = detail(id);
+        detail.setLocked(true);
+        hdrRepo.save(detail);
+        return detail;
+    }
+
+    @Override
+    public PhieuNhaps unlock(Long id) throws Exception {
+        PhieuNhaps detail = detail(id);
+        detail.setLocked(false);
+        hdrRepo.save(detail);
+        return detail;
+    }
+
+    @Override
     public PhieuNhaps create(PhieuNhapsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)

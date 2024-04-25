@@ -11,7 +11,6 @@ public class PathContains {
     public static final String URL_DETAIL = "/detail/{id}";
 
     public static final String URL_DELETE = "/delete";
-
-    public static final String URL_PHIEU_NHAPS = "/phieu-nhap";
-
+    public static final String URL_LOCK = "/lock";
+    public static final String URL_UNLOCK = "/unlock";
 }

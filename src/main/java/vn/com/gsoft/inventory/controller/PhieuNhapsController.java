@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.inventory.constant.PathContains;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
+import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.BaseResponse;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.util.system.ResponseUtils;
@@ -16,7 +17,7 @@ import vn.com.gsoft.inventory.util.system.ResponseUtils;
 
 @Slf4j
 @RestController
-@RequestMapping(PathContains.URL_PHIEU_NHAPS)
+@RequestMapping("/phieu-nhap")
 public class PhieuNhapsController {
 
     @Autowired
@@ -65,5 +66,17 @@ public class PhieuNhapsController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> delete(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_LOCK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> lock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.lock(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_UNLOCK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> unlock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.unlock(idSearchReq.getId())));
     }
 }

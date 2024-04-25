@@ -10,4 +10,8 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
 
 
     PhieuXuats init(Integer maLoaiXuatNhap, Long id) throws Exception;
+
+    PhieuXuats lock(Long id) throws Exception;
+
+    PhieuXuats unlock(Long id) throws Exception;
 }

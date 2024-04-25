@@ -72,4 +72,16 @@ public class PhieuXuatsController {
     public ResponseEntity<BaseResponse> delete(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
     }
+
+    @PostMapping(value = PathContains.URL_LOCK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> lock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.lock(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_UNLOCK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> unlock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.unlock(idSearchReq.getId())));
+    }
 }
