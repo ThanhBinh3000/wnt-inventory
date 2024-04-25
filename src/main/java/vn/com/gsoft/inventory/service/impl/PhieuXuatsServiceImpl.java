@@ -3,6 +3,7 @@ package vn.com.gsoft.inventory.service.impl;
 import com.google.gson.Gson;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,14 +63,19 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     @Override
     public Page<PhieuXuats> searchPage(PhieuXuatsReq req) throws Exception {
         Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
-        req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        if(StringUtils.isEmpty(req.getNhaThuocMaNhaThuoc())){
+            req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        }
+
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         return hdrRepo.searchPage(req, pageable);
     }
 
     @Override
     public List<PhieuXuats> searchList(PhieuXuatsReq req) throws Exception {
-        req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        if(StringUtils.isEmpty(req.getNhaThuocMaNhaThuoc())){
+            req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        }
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         return hdrRepo.searchList(req);
     }
@@ -217,7 +223,23 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         updateInventory(e);
         return e;
     }
+    @Override
+    public PhieuXuats detail(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
 
+        Optional<PhieuXuats> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }else {
+            if(optional.get().getRecordStatusId() != RecordStatusContains.ACTIVE){
+                throw new Exception("Không tìm thấy dữ liệu.");
+            }
+            optional.get().setChiTiets(phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuat(optional.get().getId()));
+        }
+        return optional.get();
+    }
     private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {
         Gson gson = new Gson();
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {

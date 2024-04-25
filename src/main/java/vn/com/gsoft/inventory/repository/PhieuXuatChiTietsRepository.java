@@ -98,4 +98,6 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
   List<PhieuXuatChiTiets> searchList(@Param("param") PhieuXuatChiTietsReq param);
 
   void deleteByPhieuXuatMaPhieuXuat(Long id);
+
+    List<PhieuXuatChiTiets> findByPhieuXuatMaPhieuXuat(Long phieuXuatMaPhieuXuat);
 }
