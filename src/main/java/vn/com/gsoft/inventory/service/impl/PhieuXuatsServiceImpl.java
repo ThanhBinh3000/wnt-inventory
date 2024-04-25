@@ -15,6 +15,7 @@ import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
+import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
 import vn.com.gsoft.inventory.repository.KhachHangsRepository;
@@ -76,15 +77,15 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     public PhieuXuats init(Integer maLoaiXuatNhap, Long id) throws Exception {
         Profile currUser = getLoggedUser();
         String storeCode = currUser.getNhaThuoc().getMaNhaThuoc();
-        Map<String, Object> applicationSetting = applicationSettingService.getDrugStoreSetting(storeCode);
+        List<ApplicationSetting> applicationSetting = currUser.getApplicationSettings();
         PhieuXuats data = null;
         if (id == null) {
             data = new PhieuXuats();
             Long soPhieuXuat = hdrRepo.findBySoPhieuXuatMax(storeCode, maLoaiXuatNhap);
             if (soPhieuXuat == null) {
-                soPhieuXuat = 1L;
+                soPhieuXuat = 0L;
             }
-            data.setSoPhieuXuat(soPhieuXuat);
+            data.setSoPhieuXuat(soPhieuXuat+1);
             data.setUId(UUID.randomUUID());
             data.setNgayXuat(new Date());
 
@@ -113,10 +114,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 data.setId(null);
                 Long soPhieuXuat = hdrRepo.findBySoPhieuXuatMax(storeCode, maLoaiXuatNhap);
                 if (soPhieuXuat == null) {
-                    soPhieuXuat = 1L;
+                    soPhieuXuat = 0L;
                 }
                 data.setUId(UUID.randomUUID());
-                data.setSoPhieuXuat(soPhieuXuat);
+                data.setSoPhieuXuat(soPhieuXuat+1);
                 data.setNgayXuat(new Date());
                 data.setCreatedByUserId(null);
                 data.setModifiedByUserId(null);
