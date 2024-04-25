@@ -154,6 +154,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        if(req.getConnectivityStatusID() ==null){
+            req.setConnectivityStatusID(0l);
+        }
+
         List<PhieuXuats> phieuXuat = hdrRepo.findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(req.getNhaThuocMaNhaThuoc(), req.getSoPhieuXuat(), req.getMaLoaiXuatNhap());
         if (!phieuXuat.isEmpty()) {
             throw new Exception("Số phiếu đã tồn tại!");
@@ -193,6 +197,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        if(req.getConnectivityStatusID() ==null){
+            req.setConnectivityStatusID(0l);
+        }
         Optional<PhieuXuats> optional = hdrRepo.findById(req.getId());
         if (optional.isEmpty()) {
             throw new Exception("Không tìm thấy dữ liệu.");
