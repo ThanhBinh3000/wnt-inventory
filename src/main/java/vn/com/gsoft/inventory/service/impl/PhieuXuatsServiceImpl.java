@@ -1,6 +1,7 @@
 package vn.com.gsoft.inventory.service.impl;
 
 import com.google.gson.Gson;
+import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,12 +130,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
+    @Transactional
     public PhieuXuats create(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        Optional<PhieuXuats> phieuXuat = hdrRepo.findBySoPhieuXuatAndMaLoaiXuatNhap(req.getSoPhieuXuat(), req.getMaLoaiXuatNhap());
-        if (phieuXuat.isPresent()) {
+        req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        List<PhieuXuats> phieuXuat = hdrRepo.findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(req.getNhaThuocMaNhaThuoc(),req.getSoPhieuXuat(), req.getMaLoaiXuatNhap());
+        if (!phieuXuat.isEmpty()) {
             throw new Exception("Số phiếu đã tồn tại!");
         }
         if (Objects.equals(req.getMaLoaiXuatNhap(), ENoteType.WarehouseTransfer) && req.getTargetStoreId() == null) {
@@ -163,17 +166,19 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
 
     @Override
+    @Transactional
     public PhieuXuats update(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
+        req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
         Optional<PhieuXuats> optional = hdrRepo.findById(req.getId());
         if (optional.isEmpty()) {
             throw new Exception("Không tìm thấy dữ liệu.");
         }
         if (!optional.get().getSoPhieuXuat().equals(req.getSoPhieuXuat())) {
-            Optional<PhieuXuats> phieuXuat = hdrRepo.findBySoPhieuXuatAndMaLoaiXuatNhap(req.getSoPhieuXuat(), req.getMaLoaiXuatNhap());
-            if (phieuXuat.isPresent()) {
+            List<PhieuXuats> phieuXuat = hdrRepo.findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(req.getNhaThuocMaNhaThuoc(),req.getSoPhieuXuat(), req.getMaLoaiXuatNhap());
+            if (!phieuXuat.isEmpty()) {
                 throw new Exception("Số phiếu đã tồn tại!");
             }
         }
