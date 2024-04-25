@@ -169,6 +169,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         // save chi tiết
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             chiTiet.setPhieuXuatMaPhieuXuat(e.getId());
+            chiTiet.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
         this.phieuXuatChiTietsRepository.saveAll(e.getChiTiets());
         // xử lý phiếu chuyển kho
@@ -224,6 +225,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.phieuXuatChiTietsRepository.deleteByPhieuXuatMaPhieuXuat(e.getId());
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             chiTiet.setPhieuXuatMaPhieuXuat(e.getId());
+            chiTiet.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
         this.phieuXuatChiTietsRepository.saveAll(e.getChiTiets());
         // xử lý phiếu chuyển kho
