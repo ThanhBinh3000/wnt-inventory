@@ -151,6 +151,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (userInfo == null)
             throw new Exception("Bad request.");
         req.setStoreId(userInfo.getNhaThuoc().getId());
+        req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
         List<PhieuXuats> phieuXuat = hdrRepo.findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(req.getNhaThuocMaNhaThuoc(), req.getSoPhieuXuat(), req.getMaLoaiXuatNhap());
         if (!phieuXuat.isEmpty()) {
@@ -188,6 +189,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (userInfo == null)
             throw new Exception("Bad request.");
         req.setStoreId(userInfo.getNhaThuoc().getId());
+        req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
         Optional<PhieuXuats> optional = hdrRepo.findById(req.getId());
         if (optional.isEmpty()) {
