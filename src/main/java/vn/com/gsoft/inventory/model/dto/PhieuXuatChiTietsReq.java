@@ -11,7 +11,7 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private Long phieuXuatMaPhieuXuat;
     private String nhaThuocMaNhaThuoc;
     private Long thuocThuocId;
-    private Integer donViTinhMaDonViTinh;
+    private Long donViTinhMaDonViTinh;
     private BigDecimal chietKhau;
     private BigDecimal giaXuat;
     private BigDecimal soLuong;

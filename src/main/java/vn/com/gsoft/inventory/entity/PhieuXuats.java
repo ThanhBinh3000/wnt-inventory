@@ -43,6 +43,8 @@ public class PhieuXuats extends BaseEntity {
     private Long khachHangMaKhachHang;
     @Column(name = "NhaCungCap_MaNhaCungCap")
     private Long nhaCungCapMaNhaCungCap;
+    @Transient
+    private String nhaCungCapMaNhaCungCapText;
     @Column(name = "BacSy_MaBacSy")
     private Integer bacSyMaBacSy;
     @Column(name = "Active")
@@ -121,6 +123,8 @@ public class PhieuXuats extends BaseEntity {
     private BigDecimal transPaymentAmount;
     @Column(name = "PaymentTypeId")
     private Long paymentTypeId;
+    @Transient
+    private String paymentTypeText;
     @Column(name = "DebtPaymentAmount")
     private BigDecimal debtPaymentAmount;
     @Column(name = "BackPaymentAmount")
@@ -181,6 +185,8 @@ public class PhieuXuats extends BaseEntity {
     private Boolean IsConnectivity;
     @Transient
     private Boolean IsManagement;
+    @Transient
+    private String createdByUserText;
     @Transient
     private List<PhieuXuatChiTiets> chiTiets;
 }
