@@ -45,8 +45,6 @@ public class NhaCungCaps extends BaseEntity {
     private Boolean active;
     @Column(name = "SupplierTypeId")
     private Integer supplierTypeId;
-    @Column(name = "RecordStatusID")
-    private Integer recordStatusID;
     @Column(name = "BarCode")
     private String barCode;
     @Column(name = "DiaBanHoatDong")

@@ -152,4 +152,21 @@ public class BaseServiceImpl<E extends BaseEntity,R extends BaseRequest, PK exte
         repository.save(optional.get());
         return true;
     }
+
+    @Override
+    public boolean updateMultiple(R req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null){
+            throw new Exception("Bad request.");
+        }
+        if(req == null || req.getListIds().isEmpty()){
+            throw new Exception("Bad request.");
+        }
+        List<E> allByIdIn = repository.findAllByIdIn(req.getListIds());
+        allByIdIn.forEach(item -> {
+            item.setRecordStatusId(req.getRecordStatusId());
+        });
+        repository.saveAll(allByIdIn);
+        return true;
+    }
 }

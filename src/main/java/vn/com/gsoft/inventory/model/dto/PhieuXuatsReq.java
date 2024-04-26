@@ -90,4 +90,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private Boolean IsConnectivity;
 
     private List<PhieuXuatChiTiets> chiTiets;
+
+    private List<Long> thuocIds;
+
 }

@@ -12,7 +12,6 @@ public class InventoryReq extends BaseRequest {
     private Long drugID;
     private Float lastValue;
     private Integer drugUnitID;
-    private Long recordStatusID;
     private Boolean needUpdate;
     private Float lastInPrice;
     private Float lastOutPrice;

@@ -23,11 +23,8 @@ public class NhaCungCapsReq extends BaseRequest {
     private Integer maNhomNhaCungCap;
     private Date created;
     private Date modified;
-    private Integer createdByUserId;
-    private Integer modifiedByUserId;
     private Boolean active;
     private Integer supplierTypeId;
-    private Integer recordStatusID;
     private String barCode;
     private String diaBanHoatDong;
     private String website;

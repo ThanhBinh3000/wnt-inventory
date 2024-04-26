@@ -2,6 +2,7 @@ package vn.com.gsoft.inventory.service.impl;
 
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,13 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
 import vn.com.gsoft.inventory.repository.*;
@@ -67,15 +66,23 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     @Override
     public Page<PhieuNhaps> searchPage(PhieuNhapsReq req) throws Exception {
         Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
-        req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
-        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        if (StringUtils.isEmpty(req.getNhaThuocMaNhaThuoc())) {
+            req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        }
+        if(req.getRecordStatusId() == null){
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
         return hdrRepo.searchPage(req, pageable);
     }
 
     @Override
     public List<PhieuNhaps> searchList(PhieuNhapsReq req) throws Exception {
-        req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
-        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        if (StringUtils.isEmpty(req.getNhaThuocMaNhaThuoc())) {
+            req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
+        }
+        if(req.getRecordStatusId() == null){
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
         return hdrRepo.searchList(req);
     }
     @Override
@@ -275,7 +282,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
                 InventoryReq inventoryReq = new InventoryReq();
                 inventoryReq.setDrugID(thuocs.getId());
                 inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
-                inventoryReq.setRecordStatusID(RecordStatusContains.ACTIVE);
+                inventoryReq.setRecordStatusId(RecordStatusContains.ACTIVE);
                 Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
                 inventory.ifPresent(thuocs::setInventory);
                 item.setThuocs(thuocs);
@@ -299,6 +306,80 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         byId1.ifPresent(userProfile -> phieuNhaps.setTenNguoiTao(userProfile.getTenDayDu()));
         return phieuNhaps;
     }
+    @Override
+    public boolean delete(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.DELETED);
+        hdrRepo.save(optional.get());
+        updateInventory(optional.get());
+        return true;
+    }
+
+    @Override
+    public boolean restore(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        if (!optional.get().getRecordStatusId().equals(RecordStatusContains.DELETED)) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdrRepo.save(optional.get());
+        updateInventory(optional.get());
+        return true;
+    }
+
+    @Override
+    public boolean deleteForever(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        if (!optional.get().getRecordStatusId().equals(RecordStatusContains.DELETED)) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(optional.get());
+        updateInventory(optional.get());
+        return true;
+    }
+
+    @Override
+    public boolean updateMultiple(PhieuNhapsReq req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null) {
+            throw new Exception("Bad request.");
+        }
+        if (req == null || req.getListIds().isEmpty()) {
+            throw new Exception("Bad request.");
+        }
+        List<PhieuNhaps> allByIdIn = hdrRepo.findAllByIdIn(req.getListIds());
+        allByIdIn.forEach(item -> {
+            item.setRecordStatusId(req.getRecordStatusId());
+        });
+        hdrRepo.saveAll(allByIdIn);
+        for (PhieuNhaps e : allByIdIn) {
+            updateInventory(e);
+        }
+        return true;
+    }
+
 
     private void updateInventory(PhieuNhaps e) throws ExecutionException, InterruptedException, TimeoutException {
         Gson gson = new Gson();

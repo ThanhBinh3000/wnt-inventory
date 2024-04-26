@@ -73,6 +73,18 @@ public class PhieuXuatsController {
         return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
     }
 
+    @PostMapping(value = PathContains.URL_DELETE_DATABASE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> deleteDatabase(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.deleteForever(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_UPDATE_STATUS_MULTI, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> updStatusMulti(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.updateMultiple(idSearchReq)));
+    }
+
     @PostMapping(value = PathContains.URL_LOCK, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> lock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {

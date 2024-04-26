@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.inventory.constant.PathContains;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.BaseResponse;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.util.system.ResponseUtils;
@@ -67,16 +66,26 @@ public class PhieuNhapsController {
     public ResponseEntity<BaseResponse> delete(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
     }
+    @PostMapping(value = PathContains.URL_DELETE_DATABASE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> deleteDatabase(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.deleteForever(idSearchReq.getId())));
+    }
 
+    @PostMapping(value = PathContains.URL_UPDATE_STATUS_MULTI, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> updStatusMulti(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.updateMultiple(idSearchReq)));
+    }
     @PostMapping(value = PathContains.URL_LOCK, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<BaseResponse> lock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+    public ResponseEntity<BaseResponse> lock(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.lock(idSearchReq.getId())));
     }
 
     @PostMapping(value = PathContains.URL_UNLOCK, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<BaseResponse> unlock(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+    public ResponseEntity<BaseResponse> unlock(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.unlock(idSearchReq.getId())));
     }
 }
