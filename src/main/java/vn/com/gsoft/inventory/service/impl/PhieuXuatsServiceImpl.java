@@ -55,6 +55,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  PaymentTypeRepository paymentTypeRepository,
                                  UserProfileRepository userProfileRepository,
                                  ThuocsRepository thuocsRepository,
+                                 DonViTinhsRepository donViTinhsRepository,
                                  PhieuNhapsService phieuNhapsService, KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -66,6 +67,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.phieuXuatChiTietsRepository = phieuXuatChiTietsRepository;
         this.paymentTypeRepository=paymentTypeRepository;
         this.userProfileRepository=userProfileRepository;
+        this.thuocsRepository = thuocsRepository;
+        this.donViTinhsRepository =donViTinhsRepository;
     }
 
     @Override
