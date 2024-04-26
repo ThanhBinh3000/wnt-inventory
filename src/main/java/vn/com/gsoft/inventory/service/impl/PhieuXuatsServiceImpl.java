@@ -73,6 +73,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.userProfileRepository = userProfileRepository;
         this.thuocsRepository = thuocsRepository;
         this.donViTinhsRepository = donViTinhsRepository;
+        this.inventoryRepository= inventoryRepository;
     }
 
     @Override
@@ -169,6 +170,16 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         detail.setLocked(false);
         hdrRepo.save(detail);
         return detail;
+    }
+
+    @Override
+    public PhieuXuats sync(Long id) {
+        return null;
+    }
+
+    @Override
+    public PhieuXuats resetSync(Long id) {
+        return null;
     }
 
     @Override

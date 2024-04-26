@@ -88,4 +88,22 @@ public class PhieuNhapsController {
     public ResponseEntity<BaseResponse> unlock(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.unlock(idSearchReq.getId())));
     }
+
+    @PostMapping(value = PathContains.URL_RESTORE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> restore(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.restore(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_APPROVE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> approve(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.approve(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_CANCEL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> cancel(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.cancel(idSearchReq.getId())));
+    }
 }

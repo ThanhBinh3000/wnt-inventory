@@ -14,4 +14,8 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     PhieuXuats lock(Long id) throws Exception;
 
     PhieuXuats unlock(Long id) throws Exception;
+
+    PhieuXuats sync(Long id);
+
+    PhieuXuats resetSync(Long id);
 }

@@ -17,4 +17,8 @@ public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq
     PhieuNhaps lock(Long id) throws Exception;
 
     PhieuNhaps unlock(Long id) throws Exception;
+
+    PhieuNhaps approve(Long id);
+
+    PhieuNhaps cancel(Long id);
 }
