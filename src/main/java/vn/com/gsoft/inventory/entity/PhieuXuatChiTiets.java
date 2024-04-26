@@ -26,8 +26,14 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private String nhaThuocMaNhaThuoc;
     @Column(name = "Thuoc_ThuocId")
     private Long thuocThuocId;
+    @Transient
+    private String maThuocText;
+    @Transient
+    private String tenThuocText;
     @Column(name = "DonViTinh_MaDonViTinh")
-    private Integer donViTinhMaDonViTinh;
+    private Long donViTinhMaDonViTinh;
+    @Transient
+    private String donViTinhMaDonViTinhText;
     @Column(name = "ChietKhau")
     private BigDecimal chietKhau;
     @Column(name = "GiaXuat")
@@ -106,5 +112,10 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private String usage;
     @Column(name = "OutOwnerPriceChild")
     private BigDecimal outOwnerPriceChild;
+
+    @Transient
+    private String imageThumbData;
+    @Transient
+    private String imagePreviewData;
 }
 

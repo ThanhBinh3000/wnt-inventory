@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -102,7 +103,8 @@ public interface  PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapCh
   List<PhieuNhapChiTiets> searchList(@Param("param") PhieuNhapChiTietsReq param);
 
   List<PhieuNhapChiTiets> findAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
-
+  @Modifying
+  @Query("UPDATE PhieuNhapChiTiets p SET p.recordStatusId = 1 WHERE p.phieuNhapMaPhieuNhap = ?1")
   void deleteAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
 
 }

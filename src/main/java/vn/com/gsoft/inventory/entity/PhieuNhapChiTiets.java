@@ -15,10 +15,10 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @Table(name = "PhieuNhapChiTiets")
-public class PhieuNhapChiTiets {
+public class PhieuNhapChiTiets extends BaseEntity {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "PhieuNhap_MaPhieuNhap")
     private Long phieuNhapMaPhieuNhap;
@@ -115,5 +115,5 @@ public class PhieuNhapChiTiets {
     @Transient
     private String tenDonViTinh;
 
-    }
+}
 
