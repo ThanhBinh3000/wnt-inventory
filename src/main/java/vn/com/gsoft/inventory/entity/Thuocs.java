@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -252,5 +253,11 @@ public class Thuocs extends BaseEntity{
 
     @Transient
     private String tenViTri;
+
+    @Transient
+    private List<DonViTinhs> listDonViTinhs;
+
+    @Transient
+    private Inventory inventory;
 }
 

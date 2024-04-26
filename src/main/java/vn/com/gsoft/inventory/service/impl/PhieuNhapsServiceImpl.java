@@ -13,6 +13,7 @@ import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
+import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.Profile;
@@ -49,6 +50,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private KafkaProducer kafkaProducer;
     @Autowired
     private UserProfileRepository userProfileRepository;
+    @Autowired
+    private InventoryRepository inventoryRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
 
@@ -173,6 +176,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             }
         }
         BeanUtils.copyProperties(req, hdr, "id", "created", "createdByUserId");
+        hdr.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
         hdr.setModified(new Date());
         hdr.setModifiedByUserId(getLoggedUser().getId());
         hdr.setRecordStatusId(RecordStatusContains.ACTIVE);
@@ -226,8 +230,41 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         PhieuNhaps phieuNhaps = optional.get();
         List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
         allByPhieuNhapMaPhieuNhap.forEach(item -> {
-            Optional<Thuocs> byId = thuocsRepository.findById(item.getThuocThuocId());
-            byId.ifPresent(item::setThuocs);
+            // Get thông tin thuốc
+            Optional<Thuocs> byThuocId = thuocsRepository.findById(item.getThuocThuocId());
+            if(byThuocId.isPresent()){
+                Thuocs thuocs = byThuocId.get();
+                List<DonViTinhs> dviTinh = new ArrayList<>();
+                if(thuocs.getDonViXuatLeMaDonViTinh() > 0){
+                    Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                    if(byId.isPresent()){
+                        byId.get().setFactor(1);
+                        byId.get().setGiaBan(item.getGiaBanLe());
+                        byId.get().setGiaNhap(item.getGiaNhap());
+                        dviTinh.add(byId.get());
+                        thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
+                    }
+                }
+                if(thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())){
+                    Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
+                    if(byId.isPresent()){
+                        byId.get().setFactor(thuocs.getHeSo());
+                        byId.get().setGiaBan(item.getGiaBanLe().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                        byId.get().setGiaNhap(item.getGiaNhap().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                        dviTinh.add(byId.get());
+                        thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
+                    }
+                }
+                thuocs.setListDonViTinhs(dviTinh);
+                InventoryReq inventoryReq = new InventoryReq();
+                inventoryReq.setDrugID(thuocs.getId());
+                inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
+                inventoryReq.setRecordStatusID(RecordStatusContains.ACTIVE);
+                Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
+                inventory.ifPresent(thuocs::setInventory);
+                item.setThuocs(thuocs);
+            }
+            // Get thông tin đơn vị tính
             Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(item.getDonViTinhMaDonViTinh());
             byId1.ifPresent(donViTinhs -> item.setTenDonViTinh(donViTinhs.getTenDonViTinh()));
         });

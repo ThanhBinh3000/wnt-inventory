@@ -9,10 +9,10 @@ import java.util.Date;
 @Data
 public class InventoryReq extends BaseRequest {
     private String drugStoreID;
-    private Integer drugID;
+    private Long drugID;
     private Float lastValue;
     private Integer drugUnitID;
-    private Integer recordStatusID;
+    private Long recordStatusID;
     private Boolean needUpdate;
     private Float lastInPrice;
     private Float lastOutPrice;
