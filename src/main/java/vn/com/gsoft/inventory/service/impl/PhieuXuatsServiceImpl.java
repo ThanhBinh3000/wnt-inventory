@@ -196,6 +196,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        req.setLocked(false);
         if (req.getConnectivityStatusID() == null) {
             req.setConnectivityStatusID(0l);
         }
@@ -255,7 +256,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
         boolean normalUser = "User".equals(userInfo.getNhaThuoc().getRole());
 
-        if (optional.get().getLocked() && !normalUser) {
+        if (optional.get().getLocked() != null && optional.get().getLocked() && !normalUser) {
             throw new Exception("Phiếu đã được khóa!");
         }
         if (optional.get().getRecordStatusId() == RecordStatusContains.ARCHIVED) {
