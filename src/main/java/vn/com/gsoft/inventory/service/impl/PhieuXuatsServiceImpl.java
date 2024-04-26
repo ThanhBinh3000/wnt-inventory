@@ -294,7 +294,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
                     Thuocs thuocs = thuocsRepository.findById(ct.getThuocThuocId()).get();
                     ct.setMaThuocText(thuocs.getMaThuoc());
-                    ct.setMaThuocText(thuocs.getTenThuoc());
+                    ct.setTenThuocText(thuocs.getTenThuoc());
                 }
                 if (ct.getDonViTinhMaDonViTinh() != null && ct.getDonViTinhMaDonViTinh() > 0) {
                     ct.setDonViTinhMaDonViTinhText(donViTinhsRepository.findById(ct.getDonViTinhMaDonViTinh()).get().getTenDonViTinh());
