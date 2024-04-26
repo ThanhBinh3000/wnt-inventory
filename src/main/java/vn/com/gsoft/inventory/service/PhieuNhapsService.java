@@ -21,4 +21,6 @@ public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq
     PhieuNhaps approve(Long id);
 
     PhieuNhaps cancel(Long id);
+
+    PhieuNhaps medicineSync(Long id);
 }

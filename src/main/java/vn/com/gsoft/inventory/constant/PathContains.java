@@ -18,7 +18,7 @@ public class PathContains {
     public static final String URL_LOCK = "/lock";
     public static final String URL_UNLOCK = "/unlock";
     public static final String URL_RESET_SYNC = "/reset-sync";
-
     public static final String URL_SYNC = "/sync";
+    public static final String URL_SYNC_MEDICINE_PORT = "/medicine-sync";
 
 }

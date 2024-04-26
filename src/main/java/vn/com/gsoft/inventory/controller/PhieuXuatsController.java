@@ -114,4 +114,10 @@ public class PhieuXuatsController {
     public ResponseEntity<BaseResponse> resetSync(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.resetSync(idSearchReq.getId())));
     }
+
+    @PostMapping(value = PathContains.URL_SYNC_MEDICINE_PORT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> medicineSync(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.medicineSync(idSearchReq.getId())));
+    }
 }

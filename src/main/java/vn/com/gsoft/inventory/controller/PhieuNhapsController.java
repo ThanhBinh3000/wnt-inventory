@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.inventory.constant.PathContains;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
+import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.BaseResponse;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.util.system.ResponseUtils;
@@ -105,5 +106,11 @@ public class PhieuNhapsController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> cancel(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.cancel(idSearchReq.getId())));
+    }
+
+    @PostMapping(value = PathContains.URL_SYNC_MEDICINE_PORT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> medicineSync(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.medicineSync(idSearchReq.getId())));
     }
 }

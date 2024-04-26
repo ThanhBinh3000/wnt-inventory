@@ -169,6 +169,11 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     @Override
+    public PhieuNhaps medicineSync(Long id) {
+        return null;
+    }
+
+    @Override
     public PhieuNhaps create(PhieuNhapsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)

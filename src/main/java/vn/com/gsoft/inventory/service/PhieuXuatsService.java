@@ -18,4 +18,6 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     PhieuXuats sync(Long id);
 
     PhieuXuats resetSync(Long id);
+
+    PhieuXuats medicineSync(Long id);
 }

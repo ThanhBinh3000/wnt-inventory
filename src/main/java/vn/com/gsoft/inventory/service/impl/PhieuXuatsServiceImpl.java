@@ -183,6 +183,11 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
+    public PhieuXuats medicineSync(Long id) {
+        return null;
+    }
+
+    @Override
     @Transactional
     public PhieuXuats create(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
