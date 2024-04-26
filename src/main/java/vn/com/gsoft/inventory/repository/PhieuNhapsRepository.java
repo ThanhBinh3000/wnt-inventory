@@ -54,6 +54,10 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " AND (:#{#param.pickUpOrderId} IS NULL OR c.pickUpOrderId = :#{#param.pickUpOrderId}) "
             + " AND (:#{#param.discount} IS NULL OR c.discount = :#{#param.discount}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.listIds} IS NULL OR c.id in (select d.phieuNhapMaPhieuNhap from PhieuNhapChiTiets d where d.id in :#{#param.listIds})) "
+            + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     Page<PhieuNhaps> searchPage(@Param("param") PhieuNhapsReq param, Pageable pageable);
@@ -100,6 +104,10 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " AND (:#{#param.pickUpOrderId} IS NULL OR c.pickUpOrderId = :#{#param.pickUpOrderId}) "
             + " AND (:#{#param.discount} IS NULL OR c.discount = :#{#param.discount}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.listIds} IS NULL OR c.id in (select d.phieuNhapMaPhieuNhap from PhieuNhapChiTiets d where d.id in :#{#param.listIds})) "
+            + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     List<PhieuNhaps> searchList(@Param("param") PhieuNhapsReq param);

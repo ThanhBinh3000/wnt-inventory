@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
@@ -21,6 +22,7 @@ public class PhieuNhapChiTietsReq  extends BaseRequest {
     private String option4;
     private String option5;
     private String soLo;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date hanDung;
     private Float remainRefQuantity;
     private Float retailQuantity;

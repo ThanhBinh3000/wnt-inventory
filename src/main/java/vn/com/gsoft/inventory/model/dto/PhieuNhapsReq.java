@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.entity.PhieuNhapChiTiets;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Data
 public class PhieuNhapsReq extends BaseRequest {
     private Long soPhieuNhap;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date ngayNhap;
     private Integer vat;
     private String dienGiai;
@@ -26,10 +28,12 @@ public class PhieuNhapsReq extends BaseRequest {
     private Boolean isModified;
     private Boolean locked;
     private Boolean isDebt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date preNoteDate;
     private String connectivityNoteID;
     private Long connectivityStatusID;
     private String connectivityResult;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date connectivityDateTime;
     private Long orderId;
     private Long archivedId;
@@ -45,10 +49,12 @@ public class PhieuNhapsReq extends BaseRequest {
     private BigDecimal score;
     private BigDecimal preScore;
     private String referenceKey;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date invoiceDate;
     private String invoiceTemplateCode;
     private String invoiceSeries;
     private String invoiceType;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date archivedDate;
     private Long timeTypeId;
     private String noteName;
