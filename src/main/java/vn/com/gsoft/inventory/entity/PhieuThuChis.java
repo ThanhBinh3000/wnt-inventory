@@ -37,7 +37,7 @@ public class PhieuThuChis extends BaseEntity {
     @Column(name = "UserProfile_UserId")
     private Integer userProfileUserId;
     @Column(name = "Amount")
-    private BigDecimal amount;
+    private Double amount;
     @Column(name = "NguoiNhan")
     private String nguoiNhan;
     @Column(name = "DiaChi")

@@ -11,10 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.inventory.constant.ENoteType;
-import vn.com.gsoft.inventory.constant.ESynStatus;
-import vn.com.gsoft.inventory.constant.InventoryConstant;
-import vn.com.gsoft.inventory.constant.RecordStatusContains;
+import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
@@ -43,6 +40,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private KhachHangsRepository khachHangsRepository;
     private NhaCungCapsRepository nhaCungCapsRepository;
     private PhieuNhapsService phieuNhapsService;
+    private PhieuNhapsRepository phieuNhapsRepository;
+    private PhieuThuChisRepository phieuThuChisRepository;
     private PaymentTypeRepository paymentTypeRepository;
     private UserProfileRepository userProfileRepository;
     private ThuocsRepository thuocsRepository;
@@ -63,6 +62,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  DonViTinhsRepository donViTinhsRepository,
                                  InventoryRepository inventoryRepository,
                                  NhaThuocsRepository nhaThuocsRepository,
+                                 PhieuNhapsRepository phieuNhapsRepository,
+                                 PhieuThuChisRepository phieuThuChisRepository,
                                  PhieuNhapsService phieuNhapsService, KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -76,8 +77,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.userProfileRepository = userProfileRepository;
         this.thuocsRepository = thuocsRepository;
         this.donViTinhsRepository = donViTinhsRepository;
-        this.nhaThuocsRepository= nhaThuocsRepository;
-        this.inventoryRepository= inventoryRepository;
+        this.nhaThuocsRepository = nhaThuocsRepository;
+        this.inventoryRepository = inventoryRepository;
+        this.phieuNhapsRepository = phieuNhapsRepository;
+        this.phieuThuChisRepository = phieuThuChisRepository;
     }
 
     @Override
@@ -200,7 +203,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         PhieuXuats detail = detail(id);
         detail.setRecordStatusId(RecordStatusContains.ACTIVE);
         hdrRepo.save(detail);
-        for(PhieuXuatChiTiets ct: detail.getChiTiets()){
+        for (PhieuXuatChiTiets ct : detail.getChiTiets()) {
             ct.setRecordStatusId(RecordStatusContains.ACTIVE);
             phieuXuatChiTietsRepository.save(ct);
         }
@@ -213,12 +216,60 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         PhieuXuats detail = detail(id);
         detail.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
         hdrRepo.save(detail);
-        for(PhieuXuatChiTiets ct: detail.getChiTiets()){
+        for (PhieuXuatChiTiets ct : detail.getChiTiets()) {
             ct.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
             phieuXuatChiTietsRepository.save(ct);
         }
         updateInventory(detail);
         return detail;
+    }
+
+    @Override
+    public Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId) {
+        double result = 0;
+        List<Integer> statusPx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
+        List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(maNhaThuoc, customerId, statusPx)
+                .stream()
+                .filter(x -> (x.getTongTien() - x.getDaTra() - x.getPaymentScoreAmount() - x.getDiscount()) > 0)
+                .toList();
+
+        List<PhieuNhaps> returnNoteCus = phieuNhapsRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(maNhaThuoc, customerId, ENoteType.ReturnFromCustomer)
+                .stream()
+                .filter(x -> (x.getTongTien() - x.getDaTra()) > 0)
+                .toList();
+
+        List<Integer> statusPtc = List.of(InOutCommingType.Incomming, InOutCommingType.OutReturnCustomer);
+        List<PhieuThuChis> inOutNotes = phieuThuChisRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndLoaiPhieuIn(maNhaThuoc, customerId, statusPtc);
+
+
+        if (!deliveryNoteService.isEmpty()) {
+            result = deliveryNoteService.stream()
+                    .mapToDouble(i -> i.getTongTien() - i.getDaTra() - i.getPaymentScoreAmount() - i.getDiscount())
+                    .sum();
+
+            if (!returnNoteCus.isEmpty()) {
+                result -= returnNoteCus.stream()
+                        .mapToDouble(x -> x.getTongTien() - x.getDaTra())
+                        .sum();
+            }
+
+            if (!inOutNotes.isEmpty()) {
+                if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))) {
+                    result -= inOutNotes.stream()
+                            .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))
+                            .mapToDouble(PhieuThuChis::getAmount)
+                            .sum();
+                }
+
+                if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))) {
+                    result += inOutNotes.stream()
+                            .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))
+                            .mapToDouble(PhieuThuChis::getAmount)
+                            .sum();
+                }
+            }
+        }
+        return result;
     }
 
     @Override
@@ -354,23 +405,23 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             for (PhieuXuatChiTiets ct : optional.get().getChiTiets()) {
                 if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
                     Optional<Thuocs> thuocsOpt = thuocsRepository.findById(ct.getThuocThuocId());
-                    if(thuocsOpt.isPresent()){
+                    if (thuocsOpt.isPresent()) {
                         Thuocs thuocs = thuocsOpt.get();
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if(thuocs.getDonViXuatLeMaDonViTinh() > 0){
+                        if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
-                            if(byId.isPresent()){
+                            if (byId.isPresent()) {
                                 byId.get().setFactor(1);
                                 byId.get().setGiaBan(ct.getGiaXuat());
                                 dviTinh.add(byId.get());
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if(thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())){
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
-                            if(byId.isPresent()){
+                            if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
                                 byId.get().setGiaBan(ct.getGiaXuat().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
                                 dviTinh.add(byId.get());

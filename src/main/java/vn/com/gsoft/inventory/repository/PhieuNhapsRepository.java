@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import vn.com.gsoft.inventory.entity.PhieuNhaps;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -117,4 +118,5 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
     @Query("SELECT MAX(px.soPhieuNhap) FROM PhieuNhaps px where px.nhaThuocMaNhaThuoc = ?1 and px.loaiXuatNhapMaLoaiXuatNhap=?2 ")
     Long findBySoPhieuNhapMax(String nhaThuocMaNhaThuoc, Long maLoaiXuatNhap);
 
+    List<PhieuNhaps> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(String maNhaThuoc, Long customerId, Integer status);
 }

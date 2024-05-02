@@ -18,8 +18,8 @@ public class PhieuNhapsReq extends BaseRequest {
     private Date ngayNhap;
     private Integer vat;
     private String dienGiai;
-    private BigDecimal tongTien;
-    private BigDecimal daTra;
+    private Double tongTien;
+    private Double daTra;
     private String nhaThuocMaNhaThuoc;
     private Long loaiXuatNhapMaLoaiXuatNhap;
     private Long nhaCungCapMaNhaCungCap;
@@ -65,7 +65,7 @@ public class PhieuNhapsReq extends BaseRequest {
     private BigDecimal debtPaymentAmount;
     private Long pickUpOrderId;
     private String linkFile;
-    private BigDecimal discount;
+    private Double discount;
     private Long targetManagementId;
 
     private List<PhieuNhapChiTiets> chiTiets = new ArrayList<>();

@@ -18,7 +18,7 @@ public class PhieuThuChisReq extends BaseRequest {
     private Long khachHangMaKhachHang;
     private Long nhaCungCapMaNhaCungCap;
     private Integer userProfileUserId;
-    private BigDecimal amount;
+    private Double amount;
     private String nguoiNhan;
     private String diaChi;
     private Integer loaiThuChiMaLoaiPhieu;

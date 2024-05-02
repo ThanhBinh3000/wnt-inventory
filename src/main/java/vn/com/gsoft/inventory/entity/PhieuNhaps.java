@@ -33,9 +33,9 @@ public class PhieuNhaps extends BaseEntity {
     @Column(name = "DienGiai")
     private String dienGiai;
     @Column(name = "TongTien")
-    private BigDecimal tongTien;
+    private Double tongTien;
     @Column(name = "DaTra")
-    private BigDecimal daTra;
+    private Double daTra;
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc;
     @Column(name = "LoaiXuatNhap_MaLoaiXuatNhap")
@@ -122,7 +122,7 @@ public class PhieuNhaps extends BaseEntity {
     @Column(name = "LinkFile")
     private String linkFile;
     @Column(name = "Discount")
-    private BigDecimal discount;
+    private Double discount;
     @Column(name = "TargetManagementId")
     private Long targetManagementId;
 

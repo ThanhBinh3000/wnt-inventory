@@ -6,6 +6,8 @@ import vn.com.gsoft.inventory.entity.PhieuNhaps;
 import vn.com.gsoft.inventory.entity.PhieuXuats;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 
+import java.util.Collection;
+
 public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq, Long> {
 
     @Transactional

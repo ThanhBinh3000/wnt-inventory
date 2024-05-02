@@ -17,8 +17,8 @@ public class PhieuXuatsReq extends BaseRequest {
     private Date ngayXuat;
     private Integer vat;
     private String dienGiai;
-    private BigDecimal tongTien;
-    private BigDecimal daTra;
+    private Double tongTien;
+    private Double daTra;
     private String nhaThuocMaNhaThuoc;
     private Long maLoaiXuatNhap;
     private Long khachHangMaKhachHang;
@@ -36,7 +36,7 @@ public class PhieuXuatsReq extends BaseRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date connectivityDateTime;
     private Long orderId;
-    private BigDecimal discount;
+    private Double discount;
     private BigDecimal score;
     private BigDecimal preScore;
     private Long archivedId;
@@ -54,7 +54,7 @@ public class PhieuXuatsReq extends BaseRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date invoiceDate;
     private BigDecimal paymentScore;
-    private BigDecimal paymentScoreAmount;
+    private Double paymentScoreAmount;
     private Long bonusPaymentId;
     private String invoiceTemplateCode;
     private String invoiceSeries;

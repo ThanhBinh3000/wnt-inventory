@@ -32,9 +32,9 @@ public class PhieuXuats extends BaseEntity {
     @Column(name = "DienGiai")
     private String dienGiai;
     @Column(name = "TongTien")
-    private BigDecimal tongTien;
+    private Double tongTien;
     @Column(name = "DaTra")
-    private BigDecimal daTra;
+    private Double daTra;
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc;
     @Column(name = "MaLoaiXuatNhap")
@@ -68,7 +68,7 @@ public class PhieuXuats extends BaseEntity {
     @Column(name = "OrderId")
     private Long orderId;
     @Column(name = "Discount")
-    private BigDecimal discount;
+    private Double discount;
     @Column(name = "Score")
     private BigDecimal score;
     @Column(name = "PreScore")
@@ -104,7 +104,7 @@ public class PhieuXuats extends BaseEntity {
     @Column(name = "PaymentScore")
     private BigDecimal paymentScore;
     @Column(name = "PaymentScoreAmount")
-    private BigDecimal paymentScoreAmount;
+    private Double paymentScoreAmount;
     @Column(name = "BonusPaymentId")
     private Long bonusPaymentId;
     @Column(name = "InvoiceTemplateCode")

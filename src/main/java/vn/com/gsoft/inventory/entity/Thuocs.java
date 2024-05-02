@@ -80,7 +80,7 @@ public class Thuocs extends BaseEntity{
     @Column(name = "ReferenceId")
     private Long referenceId;
     @Column(name = "Discount")
-    private BigDecimal discount;
+    private Double discount;
     @Column(name = "DiscountByRevenue")
     private Boolean discountByRevenue;
     @Column(name = "SaleTypeId")
