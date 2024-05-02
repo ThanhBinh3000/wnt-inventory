@@ -20,7 +20,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private BigDecimal tongTien;
     private BigDecimal daTra;
     private String nhaThuocMaNhaThuoc;
-    private Integer maLoaiXuatNhap;
+    private Long maLoaiXuatNhap;
     private Long khachHangMaKhachHang;
     private Long nhaCungCapMaNhaCungCap;
     private Integer bacSyMaBacSy;

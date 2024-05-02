@@ -1,8 +1,8 @@
 package vn.com.gsoft.inventory.constant;
 
 public class ESynStatus {
-    public static final Integer Ignore = 0;
-    public static final Integer  NotSyn = 1;
-    public static final Integer  Failed = 2;
-    public static final Integer  Synchronized = 3;
+    public static final Long Ignore = 0L;
+    public static final Long  NotSyn = 1L;
+    public static final Long  Failed = 2L;
+    public static final Long  Synchronized = 3L;
 }

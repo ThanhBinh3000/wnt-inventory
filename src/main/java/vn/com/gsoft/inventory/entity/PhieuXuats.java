@@ -38,7 +38,7 @@ public class PhieuXuats extends BaseEntity {
     @Column(name = "NhaThuoc_MaNhaThuoc")
     private String nhaThuocMaNhaThuoc;
     @Column(name = "MaLoaiXuatNhap")
-    private Integer maLoaiXuatNhap;
+    private Long maLoaiXuatNhap;
     @Column(name = "KhachHang_MaKhachHang")
     private Long khachHangMaKhachHang;
     @Column(name = "NhaCungCap_MaNhaCungCap")
@@ -187,6 +187,8 @@ public class PhieuXuats extends BaseEntity {
     private Boolean IsManagement;
     @Transient
     private String createdByUserText;
+    @Transient
+    private String targetStoreText;
     @Transient
     private List<PhieuXuatChiTiets> chiTiets;
 }

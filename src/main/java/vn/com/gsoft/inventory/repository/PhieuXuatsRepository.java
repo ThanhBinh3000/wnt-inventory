@@ -138,7 +138,7 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
     List<PhieuXuats> searchList(@Param("param") PhieuXuatsReq param);
 
     @Query("SELECT MAX(px.soPhieuXuat) FROM PhieuXuats px where px.nhaThuocMaNhaThuoc = ?1 and px.maLoaiXuatNhap=?2 ")
-    Long findBySoPhieuXuatMax(String storeCode, Integer maLoaiXuatNhap);
+    Long findBySoPhieuXuatMax(String storeCode, Long maLoaiXuatNhap);
 
-    List<PhieuXuats> findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(String nhaThuocMaNhaThuoc, Long soPhieuXuat, Integer maLoaiXuatNhap);
+    List<PhieuXuats> findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(String nhaThuocMaNhaThuoc, Long soPhieuXuat, Long maLoaiXuatNhap);
 }

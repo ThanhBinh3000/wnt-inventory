@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.inventory.constant.ESynStatus;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
@@ -51,6 +52,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private UserProfileRepository userProfileRepository;
     @Autowired
     private InventoryRepository inventoryRepository;
+    @Autowired
+    private NhaThuocsRepository nhaThuocsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
 
@@ -92,13 +95,13 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         PhieuNhaps data = null;
         if (id == null) {
             data = new PhieuNhaps();
-            Long soPhieuXuat = hdrRepo.findBySoPhieuNhapMax(maNhaThuoc, maLoaiXuatNhap);
-            if (soPhieuXuat == null) {
-                soPhieuXuat = 1L;
+            Long soPhieuNhap = hdrRepo.findBySoPhieuNhapMax(maNhaThuoc, maLoaiXuatNhap);
+            if (soPhieuNhap == null) {
+                soPhieuNhap = 1L;
             }else{
-                soPhieuXuat += 1;
+                soPhieuNhap += 1;
             }
-            data.setSoPhieuNhap(soPhieuXuat);
+            data.setSoPhieuNhap(soPhieuNhap);
             data.setUId(UUID.randomUUID());
             data.setNgayNhap(new Date());
 
@@ -120,21 +123,21 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
 //                }
 //            }
         } else {
-            Optional<PhieuNhaps> phieuXuats = hdrRepo.findById(id);
-            if (phieuXuats.isPresent()) {
-//                data = phieuXuats.get();
-//                data.setId(null);
-//                Long soPhieuXuat = hdrRepo.findBySoPhieuXuatMax(storeCode, maLoaiXuatNhap);
-//                if (soPhieuXuat == null) {
-//                    soPhieuXuat = 1L;
-//                }
-//                data.setUId(UUID.randomUUID());
-//                data.setSoPhieuXuat(soPhieuXuat);
-//                data.setNgayXuat(new Date());
-//                data.setCreatedByUserId(null);
-//                data.setModifiedByUserId(null);
-//                data.setCreated(null);
-//                data.setModified(null);
+            Optional<PhieuNhaps> phieuNhaps = hdrRepo.findById(id);
+            if (phieuNhaps.isPresent()) {
+                data = phieuNhaps.get();
+                data.setId(null);
+                Long soPhieuNhap = hdrRepo.findBySoPhieuNhapMax(maNhaThuoc, maLoaiXuatNhap);
+                if (soPhieuNhap == null) {
+                    soPhieuNhap = 1L;
+                }
+                data.setUId(UUID.randomUUID());
+                data.setSoPhieuNhap(soPhieuNhap);
+                data.setNgayNhap(new Date());
+                data.setCreatedByUserId(null);
+                data.setModifiedByUserId(null);
+                data.setCreated(null);
+                data.setModified(null);
             } else {
                 throw new Exception("Không tìm thấy phiếu copy!");
             }
@@ -159,18 +162,42 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     @Override
-    public PhieuNhaps approve(Long id) {
-        return null;
+    public PhieuNhaps approve(Long id) throws Exception {
+        PhieuNhaps detail = detail(id);
+        detail.setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdrRepo.save(detail);
+        for(PhieuNhapChiTiets ct: detail.getChiTiets()){
+            ct.setRecordStatusId(RecordStatusContains.ACTIVE);
+            dtlRepo.save(ct);
+        }
+        updateInventory(detail);
+        return detail;
     }
 
     @Override
-    public PhieuNhaps cancel(Long id) {
-        return null;
+    public PhieuNhaps cancel(Long id) throws Exception {
+        PhieuNhaps detail = detail(id);
+        detail.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(detail);
+        for(PhieuNhapChiTiets ct: detail.getChiTiets()){
+            ct.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+            dtlRepo.save(ct);
+        }
+        updateInventory(detail);
+        return detail;
     }
 
     @Override
     public PhieuNhaps medicineSync(Long id) {
         return null;
+    }
+
+    @Override
+    public PhieuNhaps resetSync(Long id) throws Exception {
+        PhieuNhaps detail = detail(id);
+        detail.setSynStatusId(ESynStatus.NotSyn);
+        hdrRepo.save(detail);
+        return detail;
     }
 
     @Override
@@ -241,13 +268,57 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     @Override
-    public PhieuNhaps createByPhieuXuats(PhieuXuats e) {
-        return null;
+    public PhieuNhaps createByPhieuXuats(PhieuXuats e) throws Exception {
+        PhieuNhaps pn = new PhieuNhaps();
+        BeanUtils.copyProperties(e, pn, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+        PhieuNhaps init = init(e.getMaLoaiXuatNhap(), null);
+        pn.setSoPhieuNhap(init.getSoPhieuNhap());
+        pn.setNhaThuocMaNhaThuoc(nhaThuocsRepository.findById(e.getTargetStoreId()).get().getMaNhaThuoc());
+        pn.setRecordStatusId(RecordStatusContains.ACTIVE);
+        pn.setIsModified(false);
+        e.setCreated(new Date());
+        e.setCreatedByUserId(getLoggedUser().getId());
+        pn = hdrRepo.save(pn);
+        // save chi tiết
+        pn.setChiTiets(new ArrayList<>());
+        for(PhieuXuatChiTiets chiTiet : e.getChiTiets()){
+            PhieuNhapChiTiets ct = new PhieuNhapChiTiets();
+            BeanUtils.copyProperties(chiTiet, ct, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+            pn.getChiTiets().add(ct);
+        }
+        this.dtlRepo.saveAll(pn.getChiTiets());
+        updateInventory(pn);
+        return pn;
     }
 
     @Override
-    public PhieuNhaps updateByPhieuXuats(PhieuXuats e) {
-        return null;
+    public PhieuNhaps updateByPhieuXuats(PhieuXuats e) throws Exception {
+        Optional<PhieuNhaps> phieuNhaps = hdrRepo.findById(e.getTargetId());
+        if(phieuNhaps.isEmpty()){
+            throw new Exception("Không tìm thấy phiếu nhập cũ!");
+        }
+        phieuNhaps.get().setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(phieuNhaps.get());
+        PhieuNhaps pn = new PhieuNhaps();
+        BeanUtils.copyProperties(e, pn, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+        PhieuNhaps init = init(e.getMaLoaiXuatNhap(), null);
+        pn.setSoPhieuNhap(init.getSoPhieuNhap());
+        pn.setNhaThuocMaNhaThuoc(nhaThuocsRepository.findById(e.getTargetStoreId()).get().getMaNhaThuoc());
+        pn.setRecordStatusId(RecordStatusContains.ACTIVE);
+        pn.setIsModified(false);
+        e.setCreated(new Date());
+        e.setCreatedByUserId(getLoggedUser().getId());
+        pn = hdrRepo.save(pn);
+        // save chi tiết
+        pn.setChiTiets(new ArrayList<>());
+        for(PhieuXuatChiTiets chiTiet : e.getChiTiets()){
+            PhieuNhapChiTiets ct = new PhieuNhapChiTiets();
+            BeanUtils.copyProperties(chiTiet, ct, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+            pn.getChiTiets().add(ct);
+        }
+        this.dtlRepo.saveAll(pn.getChiTiets());
+        updateInventory(pn);
+        return pn;
     }
 
 

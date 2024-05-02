@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.ENoteType;
+import vn.com.gsoft.inventory.constant.ESynStatus;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
@@ -47,6 +48,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private ThuocsRepository thuocsRepository;
     private DonViTinhsRepository donViTinhsRepository;
     private InventoryRepository inventoryRepository;
+    private NhaThuocsRepository nhaThuocsRepository;
     private KafkaProducer kafkaProducer;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
@@ -60,6 +62,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  ThuocsRepository thuocsRepository,
                                  DonViTinhsRepository donViTinhsRepository,
                                  InventoryRepository inventoryRepository,
+                                 NhaThuocsRepository nhaThuocsRepository,
                                  PhieuNhapsService phieuNhapsService, KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -73,6 +76,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.userProfileRepository = userProfileRepository;
         this.thuocsRepository = thuocsRepository;
         this.donViTinhsRepository = donViTinhsRepository;
+        this.nhaThuocsRepository= nhaThuocsRepository;
         this.inventoryRepository= inventoryRepository;
     }
 
@@ -100,7 +104,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
-    public PhieuXuats init(Integer maLoaiXuatNhap, Long id) throws Exception {
+    public PhieuXuats init(Long maLoaiXuatNhap, Long id) throws Exception {
         Profile currUser = getLoggedUser();
         String storeCode = currUser.getNhaThuoc().getMaNhaThuoc();
         List<ApplicationSetting> applicationSetting = currUser.getApplicationSettings();
@@ -174,17 +178,47 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
     @Override
     public PhieuXuats sync(Long id) {
+
         return null;
     }
 
     @Override
-    public PhieuXuats resetSync(Long id) {
-        return null;
+    public PhieuXuats resetSync(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setSynStatusId(ESynStatus.NotSyn);
+        hdrRepo.save(detail);
+        return detail;
     }
 
     @Override
     public PhieuXuats medicineSync(Long id) {
         return null;
+    }
+
+    @Override
+    public PhieuXuats approve(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdrRepo.save(detail);
+        for(PhieuXuatChiTiets ct: detail.getChiTiets()){
+            ct.setRecordStatusId(RecordStatusContains.ACTIVE);
+            phieuXuatChiTietsRepository.save(ct);
+        }
+        updateInventory(detail);
+        return detail;
+    }
+
+    @Override
+    public PhieuXuats cancel(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(detail);
+        for(PhieuXuatChiTiets ct: detail.getChiTiets()){
+            ct.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+            phieuXuatChiTietsRepository.save(ct);
+        }
+        updateInventory(detail);
+        return detail;
     }
 
     @Override
@@ -305,6 +339,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuat(optional.get().getId());
             phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
+            if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
+                optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
+            }
             if (optional.get().getNhaCungCapMaNhaCungCap() != null && optional.get().getNhaCungCapMaNhaCungCap() > 0) {
                 optional.get().setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
             }
