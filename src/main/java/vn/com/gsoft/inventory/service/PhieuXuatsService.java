@@ -26,5 +26,5 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     PhieuXuats approve(Long id) throws Exception;
     @Transactional
     PhieuXuats cancel(Long id) throws Exception;
-    Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId);
+    Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo);
 }

@@ -134,7 +134,7 @@ public class PhieuXuatsController {
     @PostMapping(value = "/get-total-debt-amount-customer", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> getTotalDebtAmountCustomer(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.getTotalDebtAmountCustomer(idSearchReq.getNhaThuocMaNhaThuoc(), idSearchReq.getKhachHangMaKhachHang())));
+        return ResponseEntity.ok(ResponseUtils.ok(service.getTotalDebtAmountCustomer(idSearchReq.getNhaThuocMaNhaThuoc(), idSearchReq.getKhachHangMaKhachHang(), idSearchReq.getNgayTinhNo())));
     }
 
 }

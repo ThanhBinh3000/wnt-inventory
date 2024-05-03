@@ -225,7 +225,11 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
-    public Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId) {
+    public Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo) {
+        if(ngayTinhNo == null){
+            ngayTinhNo = new Date();
+        }
+        // todo
         double result = 0;
         List<Integer> statusPx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
         List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(maNhaThuoc, customerId, statusPx)

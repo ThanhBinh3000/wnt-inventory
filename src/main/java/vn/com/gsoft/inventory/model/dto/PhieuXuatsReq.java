@@ -104,5 +104,6 @@ public class PhieuXuatsReq extends BaseRequest {
     private List<PhieuXuatChiTiets> chiTiets;
 
     private List<Long> thuocIds;
-
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date ngayTinhNo;
 }
