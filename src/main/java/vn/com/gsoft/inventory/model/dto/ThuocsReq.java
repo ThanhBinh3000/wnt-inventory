@@ -39,7 +39,7 @@ public class ThuocsReq extends BaseRequest {
     private Integer metadataHash;
     private Integer rpMetadataHash;
     private Long referenceId;
-    private BigDecimal discount;
+    private Double discount;
     private Boolean discountByRevenue;
     private Long saleTypeId;
     private BigDecimal saleOff;

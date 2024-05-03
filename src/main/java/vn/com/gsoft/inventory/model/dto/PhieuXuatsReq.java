@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.entity.PhieuXuatChiTiets;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
@@ -12,13 +13,14 @@ import java.util.UUID;
 @Data
 public class PhieuXuatsReq extends BaseRequest {
     private Long soPhieuXuat;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date ngayXuat;
     private Integer vat;
     private String dienGiai;
-    private BigDecimal tongTien;
-    private BigDecimal daTra;
+    private Double tongTien;
+    private Double daTra;
     private String nhaThuocMaNhaThuoc;
-    private Integer maLoaiXuatNhap;
+    private Long maLoaiXuatNhap;
     private Long khachHangMaKhachHang;
     private Long nhaCungCapMaNhaCungCap;
     private Integer bacSyMaBacSy;
@@ -26,13 +28,15 @@ public class PhieuXuatsReq extends BaseRequest {
     private Boolean isModified;
     private Boolean locked;
     private Boolean isDebt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date preNoteDate;
     private String connectivityNoteID;
     private Long connectivityStatusID;
     private String connectivityResult;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date connectivityDateTime;
     private Long orderId;
-    private BigDecimal discount;
+    private Double discount;
     private BigDecimal score;
     private BigDecimal preScore;
     private Long archivedId;
@@ -47,13 +51,15 @@ public class PhieuXuatsReq extends BaseRequest {
     private String invoiceCode;
     private String invoiceNo;
     private String referenceKey;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date invoiceDate;
     private BigDecimal paymentScore;
-    private BigDecimal paymentScoreAmount;
+    private Double paymentScoreAmount;
     private Long bonusPaymentId;
     private String invoiceTemplateCode;
     private String invoiceSeries;
     private String invoiceType;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date archivedDate;
     private BigDecimal prePaymentScore;
     private Long synStatusId;
@@ -67,10 +73,15 @@ public class PhieuXuatsReq extends BaseRequest {
     private String keyOldEInvoice;
     private Long eInvoiceStatusID;
     private Long signEInvoiceStatusID;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date connEInvoiceDateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date signEInvoiceDateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date destroyEInvoiceDateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date replacedEInvoiceDateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date editedEInvoiceDateTime;
     private String kHHDon;
     private String kHMSHDon;
@@ -81,6 +92,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private String taxAuthorityCode;
     private String eInvoiveResult;
     private Boolean isRefSampleNote;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date nextPurchaseDate;
     private String trackingIdZNS;
     private String resultZNS;
@@ -90,4 +102,8 @@ public class PhieuXuatsReq extends BaseRequest {
     private Boolean IsConnectivity;
 
     private List<PhieuXuatChiTiets> chiTiets;
+
+    private List<Long> thuocIds;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date ngayTinhNo;
 }

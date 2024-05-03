@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
@@ -33,6 +34,7 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private Long archiveUnitId;
     private Float preRetailQuantity;
     private String batchNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date expiredDate;
     private Boolean expirySetAuto;
     private Long referenceId;

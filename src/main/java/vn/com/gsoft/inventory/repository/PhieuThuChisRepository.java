@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import vn.com.gsoft.inventory.entity.PhieuThuChis;
 import vn.com.gsoft.inventory.model.dto.PhieuThuChisReq;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -34,4 +35,6 @@ public interface PhieuThuChisRepository extends BaseRepository<PhieuThuChis, Phi
             + " ORDER BY c.id desc"
     )
     List<PhieuThuChis> searchList(@Param("param") PhieuThuChisReq param);
+
+    List<PhieuThuChis> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndLoaiPhieuIn(String maNhaThuoc, Long customerId, List<Integer> statusPtc);
 }

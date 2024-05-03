@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
@@ -18,13 +19,14 @@ public class KhachHangsReq extends BaseRequest {
     private String ghiChu;
     private String maNhaThuoc;
     private Long maNhomKhachHang;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date modified;
-    private Integer createdByUserId;
-    private Integer modifiedByUserId;
     private Boolean active;
     private Integer customerTypeId;
     private String barCode;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date birthDate;
     private String code;
     private BigDecimal score;

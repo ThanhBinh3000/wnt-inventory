@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
@@ -12,13 +13,14 @@ public class InventoryReq extends BaseRequest {
     private Long drugID;
     private Float lastValue;
     private Integer drugUnitID;
-    private Long recordStatusID;
     private Boolean needUpdate;
     private Float lastInPrice;
     private Float lastOutPrice;
     private Float retailOutPrice;
     private Float retailBatchOutPrice;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date lastUpdated;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date lastIncurredData;
     private String serialNumber;
     private Boolean regenRevenue;
@@ -27,11 +29,13 @@ public class InventoryReq extends BaseRequest {
     private Boolean hasTransactions;
     private Integer receiptItemCount;
     private Integer deliveryItemCount;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date expiredDate;
     private BigDecimal initValue;
     private BigDecimal initOutPrice;
     private BigDecimal initInPrice;
     private Integer storeId;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date archivedDate;
     private BigDecimal outPrice;
 }

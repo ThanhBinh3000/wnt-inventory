@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import vn.com.gsoft.inventory.entity.PhieuNhaps;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,6 +55,10 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " AND (:#{#param.pickUpOrderId} IS NULL OR c.pickUpOrderId = :#{#param.pickUpOrderId}) "
             + " AND (:#{#param.discount} IS NULL OR c.discount = :#{#param.discount}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.listIds} IS NULL OR c.id in (select d.phieuNhapMaPhieuNhap from PhieuNhapChiTiets d where d.id in :#{#param.listIds})) "
+            + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     Page<PhieuNhaps> searchPage(@Param("param") PhieuNhapsReq param, Pageable pageable);
@@ -100,6 +105,10 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " AND (:#{#param.pickUpOrderId} IS NULL OR c.pickUpOrderId = :#{#param.pickUpOrderId}) "
             + " AND (:#{#param.discount} IS NULL OR c.discount = :#{#param.discount}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.listIds} IS NULL OR c.id in (select d.phieuNhapMaPhieuNhap from PhieuNhapChiTiets d where d.id in :#{#param.listIds})) "
+            + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     List<PhieuNhaps> searchList(@Param("param") PhieuNhapsReq param);
@@ -109,4 +118,5 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
     @Query("SELECT MAX(px.soPhieuNhap) FROM PhieuNhaps px where px.nhaThuocMaNhaThuoc = ?1 and px.loaiXuatNhapMaLoaiXuatNhap=?2 ")
     Long findBySoPhieuNhapMax(String nhaThuocMaNhaThuoc, Long maLoaiXuatNhap);
 
+    List<PhieuNhaps> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(String maNhaThuoc, Long customerId, Integer status);
 }

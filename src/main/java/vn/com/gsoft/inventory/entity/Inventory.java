@@ -31,7 +31,7 @@ public class Inventory{
     @Column(name = "DrugUnitID")
     private Integer drugUnitID;
     @Column(name = "RecordStatusID")
-    private Integer recordStatusID;
+    private Integer recordStatusId;
     @Column(name = "NeedUpdate")
     private Boolean needUpdate;
     @Column(name = "LastInPrice")

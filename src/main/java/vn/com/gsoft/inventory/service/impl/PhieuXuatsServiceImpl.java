@@ -11,10 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.inventory.constant.ENoteType;
-import vn.com.gsoft.inventory.constant.InventoryConstant;
-import vn.com.gsoft.inventory.constant.RecordStatusContains;
+import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
+import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
@@ -25,6 +24,7 @@ import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -40,10 +40,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private KhachHangsRepository khachHangsRepository;
     private NhaCungCapsRepository nhaCungCapsRepository;
     private PhieuNhapsService phieuNhapsService;
+    private PhieuNhapsRepository phieuNhapsRepository;
+    private PhieuThuChisRepository phieuThuChisRepository;
     private PaymentTypeRepository paymentTypeRepository;
     private UserProfileRepository userProfileRepository;
     private ThuocsRepository thuocsRepository;
     private DonViTinhsRepository donViTinhsRepository;
+    private InventoryRepository inventoryRepository;
+    private NhaThuocsRepository nhaThuocsRepository;
     private KafkaProducer kafkaProducer;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
@@ -56,6 +60,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  UserProfileRepository userProfileRepository,
                                  ThuocsRepository thuocsRepository,
                                  DonViTinhsRepository donViTinhsRepository,
+                                 InventoryRepository inventoryRepository,
+                                 NhaThuocsRepository nhaThuocsRepository,
+                                 PhieuNhapsRepository phieuNhapsRepository,
+                                 PhieuThuChisRepository phieuThuChisRepository,
                                  PhieuNhapsService phieuNhapsService, KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -65,10 +73,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.phieuNhapsService = phieuNhapsService;
         this.kafkaProducer = kafkaProducer;
         this.phieuXuatChiTietsRepository = phieuXuatChiTietsRepository;
-        this.paymentTypeRepository=paymentTypeRepository;
-        this.userProfileRepository=userProfileRepository;
+        this.paymentTypeRepository = paymentTypeRepository;
+        this.userProfileRepository = userProfileRepository;
         this.thuocsRepository = thuocsRepository;
-        this.donViTinhsRepository =donViTinhsRepository;
+        this.donViTinhsRepository = donViTinhsRepository;
+        this.nhaThuocsRepository = nhaThuocsRepository;
+        this.inventoryRepository = inventoryRepository;
+        this.phieuNhapsRepository = phieuNhapsRepository;
+        this.phieuThuChisRepository = phieuThuChisRepository;
     }
 
     @Override
@@ -77,9 +89,26 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (StringUtils.isEmpty(req.getNhaThuocMaNhaThuoc())) {
             req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
         }
+        if (req.getRecordStatusId() == null) {
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
+        Page<PhieuXuats> phieuXuats = hdrRepo.searchPage(req, pageable);
+        for(PhieuXuats px: phieuXuats.getContent()){
+            if (px.getKhachHangMaKhachHang() != null && px.getKhachHangMaKhachHang() > 0) {
+                px.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(px.getKhachHangMaKhachHang()).get().getTenKhachHang());
+            }
+            if (px.getTargetStoreId() != null && px.getTargetStoreId() > 0) {
+                px.setTargetStoreText(this.nhaThuocsRepository.findById(px.getTargetStoreId()).get().getTenNhaThuoc());
+            }
+            if (px.getNhaCungCapMaNhaCungCap() != null && px.getNhaCungCapMaNhaCungCap() > 0) {
+                px.setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(px.getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+            }
+            if (px.getCreatedByUserId() != null && px.getCreatedByUserId() > 0) {
+                px.setCreatedByUserText(this.userProfileRepository.findById(px.getCreatedByUserId()).get().getTenDayDu());
+            }
+        }
 
-        req.setRecordStatusId(RecordStatusContains.ACTIVE);
-        return hdrRepo.searchPage(req, pageable);
+        return phieuXuats;
     }
 
     @Override
@@ -87,12 +116,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (StringUtils.isEmpty(req.getNhaThuocMaNhaThuoc())) {
             req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
         }
-        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        if (req.getRecordStatusId() == null) {
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
         return hdrRepo.searchList(req);
     }
 
     @Override
-    public PhieuXuats init(Integer maLoaiXuatNhap, Long id) throws Exception {
+    public PhieuXuats init(Long maLoaiXuatNhap, Long id) throws Exception {
         Profile currUser = getLoggedUser();
         String storeCode = currUser.getNhaThuoc().getMaNhaThuoc();
         List<ApplicationSetting> applicationSetting = currUser.getApplicationSettings();
@@ -165,6 +196,127 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
+    public Boolean sync(String nhaThuocMaNhaThuoc, List<Long> listIds) throws Exception {
+        List<PhieuXuats> pxs;
+        List<Long> synStatusIds = List.of(ESynStatus.NotSyn, ESynStatus.Failed);
+        if (listIds.isEmpty()) {
+            pxs = hdrRepo.findByNhaThuocMaNhaThuocAndMaLoaiXuatNhapAndSynStatusIdIn(nhaThuocMaNhaThuoc, ENoteType.Delivery, synStatusIds);
+        } else {
+            pxs = hdrRepo.findByNhaThuocMaNhaThuocAndIdInAndMaLoaiXuatNhapAndSynStatusIdIn(nhaThuocMaNhaThuoc, listIds, ENoteType.Delivery, synStatusIds);
+        }
+        Set<Long> idNhaThuocs = pxs.stream().map(PhieuXuats::getTargetStoreId).collect(Collectors.toSet());
+        List<NhaThuocs> nhaThuocs = nhaThuocsRepository.findAllByIdIn(idNhaThuocs.stream().toList());
+        if (nhaThuocs.stream().anyMatch(x -> x.getIsUploading() != null && x.getIsUploading())) {
+            throw new Exception("Hệ thống đang xử lý việc upload , đồng bộ bạn vui lòng chờ hệ thống xử lý xong mới có thể upload , đồng bộ tiếp.");
+        }
+        List<PhieuNhaps> pns = new ArrayList<>();
+        for (PhieuXuats px : pxs) {
+            PhieuNhaps pn = this.phieuNhapsService.createByPhieuXuats(px);
+            if (pn != null) {
+                pns.add(pn);
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public PhieuXuats resetSync(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setSynStatusId(ESynStatus.NotSyn);
+        hdrRepo.save(detail);
+        return detail;
+    }
+
+    @Override
+    public PhieuXuats medicineSync(Long id) {
+        return null;
+    }
+
+    @Override
+    public PhieuXuats approve(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdrRepo.save(detail);
+        for (PhieuXuatChiTiets ct : detail.getChiTiets()) {
+            ct.setRecordStatusId(RecordStatusContains.ACTIVE);
+            phieuXuatChiTietsRepository.save(ct);
+        }
+        updateInventory(detail);
+        return detail;
+    }
+
+    @Override
+    public PhieuXuats cancel(Long id) throws Exception {
+        PhieuXuats detail = detail(id);
+        detail.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(detail);
+        for (PhieuXuatChiTiets ct : detail.getChiTiets()) {
+            ct.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+            phieuXuatChiTietsRepository.save(ct);
+        }
+        updateInventory(detail);
+        return detail;
+    }
+
+    @Override
+    public Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo) {
+        if (ngayTinhNo == null) {
+            ngayTinhNo = new Date();
+        }
+        double result = 0;
+        List<Integer> statusPx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
+        Date finalNgayTinhNo = ngayTinhNo;
+        List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(maNhaThuoc, customerId, statusPx)
+                .stream()
+                .filter(x -> (x.getTongTien() - x.getDaTra() - x.getPaymentScoreAmount() - x.getDiscount()) > 0)
+                .filter(x -> (x.getNgayXuat() != null && x.getNgayXuat().before(finalNgayTinhNo)))
+                .toList();
+
+        List<PhieuNhaps> returnNoteCus = phieuNhapsRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(maNhaThuoc, customerId, ENoteType.ReturnFromCustomer)
+                .stream()
+                .filter(x -> (x.getTongTien() - x.getDaTra()) > 0)
+                .filter(x -> (x.getNgayNhap() != null && x.getNgayNhap().before(finalNgayTinhNo)))
+                .toList();
+
+        List<Integer> statusPtc = List.of(InOutCommingType.Incomming, InOutCommingType.OutReturnCustomer);
+        List<PhieuThuChis> inOutNotes = phieuThuChisRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndLoaiPhieuIn(maNhaThuoc, customerId, statusPtc)
+                .stream()
+                .filter(x -> (x.getNgayTao() != null && x.getNgayTao().before(finalNgayTinhNo)))
+                .toList();
+
+
+        if (!deliveryNoteService.isEmpty()) {
+            result = deliveryNoteService.stream()
+                    .mapToDouble(i -> i.getTongTien() - i.getDaTra() - i.getPaymentScoreAmount() - i.getDiscount())
+                    .sum();
+
+            if (!returnNoteCus.isEmpty()) {
+                result -= returnNoteCus.stream()
+                        .mapToDouble(x -> x.getTongTien() - x.getDaTra())
+                        .sum();
+            }
+
+            if (!inOutNotes.isEmpty()) {
+                if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))) {
+                    result -= inOutNotes.stream()
+                            .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))
+                            .mapToDouble(PhieuThuChis::getAmount)
+                            .sum();
+                }
+
+                if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))) {
+                    result += inOutNotes.stream()
+                            .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))
+                            .mapToDouble(PhieuThuChis::getAmount)
+                            .sum();
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     @Transactional
     public PhieuXuats create(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
@@ -173,7 +325,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
-        if(req.getConnectivityStatusID() ==null){
+        req.setLocked(false);
+        if (req.getConnectivityStatusID() == null) {
             req.setConnectivityStatusID(0l);
         }
 
@@ -216,7 +369,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setSourceStoreId(userInfo.getNhaThuoc().getId());
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
-        if(req.getConnectivityStatusID() ==null){
+        if (req.getConnectivityStatusID() == null) {
             req.setConnectivityStatusID(0l);
         }
         Optional<PhieuXuats> optional = hdrRepo.findById(req.getId());
@@ -232,7 +385,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
         boolean normalUser = "User".equals(userInfo.getNhaThuoc().getRole());
 
-        if (optional.get().getLocked() && !normalUser) {
+        if (optional.get().getLocked() != null && optional.get().getLocked() && !normalUser) {
             throw new Exception("Phiếu đã được khóa!");
         }
         if (optional.get().getRecordStatusId() == RecordStatusContains.ARCHIVED) {
@@ -279,8 +432,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 throw new Exception("Không tìm thấy dữ liệu.");
             }
             List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuat(optional.get().getId());
-            phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item ->RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
+            phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
+            if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {
+                optional.get().setKhachHangMaKhachHangText(this.khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang()).get().getTenKhachHang());
+            }
+            if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
+                optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
+            }
             if (optional.get().getNhaCungCapMaNhaCungCap() != null && optional.get().getNhaCungCapMaNhaCungCap() > 0) {
                 optional.get().setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
             }
@@ -290,11 +449,41 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             if (optional.get().getCreatedByUserId() != null && optional.get().getCreatedByUserId() > 0) {
                 optional.get().setCreatedByUserText(this.userProfileRepository.findById(optional.get().getCreatedByUserId()).get().getTenDayDu());
             }
-            for(PhieuXuatChiTiets ct: optional.get().getChiTiets()){
+            for (PhieuXuatChiTiets ct : optional.get().getChiTiets()) {
                 if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
-                    Thuocs thuocs = thuocsRepository.findById(ct.getThuocThuocId()).get();
-                    ct.setMaThuocText(thuocs.getMaThuoc());
-                    ct.setTenThuocText(thuocs.getTenThuoc());
+                    Optional<Thuocs> thuocsOpt = thuocsRepository.findById(ct.getThuocThuocId());
+                    if (thuocsOpt.isPresent()) {
+                        Thuocs thuocs = thuocsOpt.get();
+                        ct.setMaThuocText(thuocs.getMaThuoc());
+                        ct.setTenThuocText(thuocs.getTenThuoc());
+                        List<DonViTinhs> dviTinh = new ArrayList<>();
+                        if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                            Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                            if (byId.isPresent()) {
+                                byId.get().setFactor(1);
+                                byId.get().setGiaBan(ct.getGiaXuat());
+                                dviTinh.add(byId.get());
+                                thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
+                            }
+                        }
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                            Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
+                            if (byId.isPresent()) {
+                                byId.get().setFactor(thuocs.getHeSo());
+                                byId.get().setGiaBan(ct.getGiaXuat().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                                dviTinh.add(byId.get());
+                                thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
+                            }
+                        }
+                        thuocs.setListDonViTinhs(dviTinh);
+                        InventoryReq inventoryReq = new InventoryReq();
+                        inventoryReq.setDrugID(thuocs.getId());
+                        inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
+                        inventoryReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+                        Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
+                        inventory.ifPresent(thuocs::setInventory);
+                        ct.setThuocs(thuocs);
+                    }
                 }
                 if (ct.getDonViTinhMaDonViTinh() != null && ct.getDonViTinhMaDonViTinh() > 0) {
                     ct.setDonViTinhMaDonViTinhText(donViTinhsRepository.findById(ct.getDonViTinhMaDonViTinh()).get().getTenDonViTinh());
@@ -305,6 +494,80 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             }
         }
         return optional.get();
+    }
+
+    @Override
+    public boolean delete(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuXuats> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.DELETED);
+        hdrRepo.save(optional.get());
+        updateInventory(optional.get());
+        return true;
+    }
+
+    @Override
+    public boolean restore(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuXuats> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        if (!optional.get().getRecordStatusId().equals(RecordStatusContains.DELETED)) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdrRepo.save(optional.get());
+        updateInventory(optional.get());
+        return true;
+    }
+
+    @Override
+    public boolean deleteForever(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuXuats> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        if (!optional.get().getRecordStatusId().equals(RecordStatusContains.DELETED)) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(optional.get());
+        updateInventory(optional.get());
+        return true;
+    }
+
+    @Override
+    public boolean updateMultiple(PhieuXuatsReq req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null) {
+            throw new Exception("Bad request.");
+        }
+        if (req == null || req.getListIds().isEmpty()) {
+            throw new Exception("Bad request.");
+        }
+        List<PhieuXuats> allByIdIn = hdrRepo.findAllByIdIn(req.getListIds());
+        allByIdIn.forEach(item -> {
+            item.setRecordStatusId(req.getRecordStatusId());
+        });
+        hdrRepo.saveAll(allByIdIn);
+        for (PhieuXuats e : allByIdIn) {
+            updateInventory(e);
+        }
+        return true;
     }
 
     private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {

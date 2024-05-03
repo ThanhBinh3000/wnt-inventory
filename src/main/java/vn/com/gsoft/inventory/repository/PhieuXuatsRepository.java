@@ -66,6 +66,10 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
             + " AND (:#{#param.resultZNS} IS NULL OR lower(c.resultZNS) LIKE lower(concat('%',CONCAT(:#{#param.resultZNS},'%'))))"
             + " AND (:#{#param.idPaymentQR} IS NULL OR c.idPaymentQR = :#{#param.idPaymentQR}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.thuocIds} IS NULL OR c.id in (select d.phieuXuatMaPhieuXuat from PhieuXuatChiTiets d where d.thuocThuocId in (:#{#param.thuocIds}))) "
+            + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     Page<PhieuXuats> searchPage(@Param("param") PhieuXuatsReq param, Pageable pageable);
@@ -125,12 +129,22 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
             + " AND (:#{#param.resultZNS} IS NULL OR lower(c.resultZNS) LIKE lower(concat('%',CONCAT(:#{#param.resultZNS},'%'))))"
             + " AND (:#{#param.idPaymentQR} IS NULL OR c.idPaymentQR = :#{#param.idPaymentQR}) "
             + " AND (:#{#param.targetManagementId} IS NULL OR c.targetManagementId = :#{#param.targetManagementId}) "
+            + " AND (:#{#param.thuocIds} IS NULL OR c.id in (select d.phieuXuatMaPhieuXuat from PhieuXuatChiTiets d where d.thuocThuocId in (:#{#param.thuocIds}))) "
+            + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     List<PhieuXuats> searchList(@Param("param") PhieuXuatsReq param);
 
     @Query("SELECT MAX(px.soPhieuXuat) FROM PhieuXuats px where px.nhaThuocMaNhaThuoc = ?1 and px.maLoaiXuatNhap=?2 ")
-    Long findBySoPhieuXuatMax(String storeCode, Integer maLoaiXuatNhap);
+    Long findBySoPhieuXuatMax(String storeCode, Long maLoaiXuatNhap);
 
-    List<PhieuXuats> findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(String nhaThuocMaNhaThuoc, Long soPhieuXuat, Integer maLoaiXuatNhap);
+    List<PhieuXuats> findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(String nhaThuocMaNhaThuoc, Long soPhieuXuat, Long maLoaiXuatNhap);
+
+    List<PhieuXuats> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(String maNhaThuoc, Long customerId, List<Integer> statusPx);
+
+    List<PhieuXuats> findByNhaThuocMaNhaThuocAndMaLoaiXuatNhapAndSynStatusIdIn(String nhaThuocMaNhaThuoc, Integer delivery, List<Long> synStatusIds);
+
+    List<PhieuXuats> findByNhaThuocMaNhaThuocAndIdInAndMaLoaiXuatNhapAndSynStatusIdIn(String nhaThuocMaNhaThuoc, List<Long> listIds, Integer delivery, List<Long> synStatusIds);
 }

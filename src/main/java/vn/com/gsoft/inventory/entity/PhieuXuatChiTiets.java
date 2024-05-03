@@ -117,5 +117,7 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private String imageThumbData;
     @Transient
     private String imagePreviewData;
+    @Transient
+    private Thuocs thuocs;
 }
 

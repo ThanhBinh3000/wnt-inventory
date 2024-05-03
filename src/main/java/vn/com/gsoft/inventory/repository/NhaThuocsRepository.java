@@ -9,6 +9,7 @@ import vn.com.gsoft.inventory.entity.NhaThuocs;
 import vn.com.gsoft.inventory.model.dto.NhaThuocsReq;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface NhaThuocsRepository extends BaseRepository<NhaThuocs, NhaThuocsReq, Long> {
@@ -32,4 +33,6 @@ public interface NhaThuocsRepository extends BaseRepository<NhaThuocs, NhaThuocs
     List<NhaThuocs> searchList(@Param("param") NhaThuocsReq param);
 
     Long countDistinctByMaNhaThuocChaIn(List<String> storeCodes);
+
+    List<NhaThuocs> findByMaNhaThuocIn(Set<String> maNhaThuocs);
 }
