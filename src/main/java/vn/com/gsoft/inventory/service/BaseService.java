@@ -2,7 +2,6 @@ package vn.com.gsoft.inventory.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,5 +27,5 @@ public interface BaseService<E,R, PK extends Serializable> {
     @Transactional(rollbackFor = {Exception.class, Throwable.class})
     boolean deleteForever(PK id) throws Exception;
     @Transactional(rollbackFor = {Exception.class, Throwable.class})
-    boolean updateMultiple(R req) throws Exception;
+    boolean updateStatusMulti(R req) throws Exception;
 }

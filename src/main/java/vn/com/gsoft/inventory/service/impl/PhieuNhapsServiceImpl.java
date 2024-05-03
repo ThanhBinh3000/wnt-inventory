@@ -458,7 +458,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     @Override
-    public boolean updateMultiple(PhieuNhapsReq req) throws Exception {
+    public boolean updateStatusMulti(PhieuNhapsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null) {
             throw new Exception("Bad request.");

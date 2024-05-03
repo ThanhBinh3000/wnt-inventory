@@ -76,7 +76,7 @@ public class PhieuNhapsController {
     @PostMapping(value = PathContains.URL_UPDATE_STATUS_MULTI, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> updStatusMulti(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.updateMultiple(idSearchReq)));
+        return ResponseEntity.ok(ResponseUtils.ok(service.updateStatusMulti(idSearchReq)));
     }
     @PostMapping(value = PathContains.URL_LOCK, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)

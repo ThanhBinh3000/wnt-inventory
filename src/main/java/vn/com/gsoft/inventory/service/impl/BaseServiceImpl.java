@@ -154,7 +154,7 @@ public class BaseServiceImpl<E extends BaseEntity,R extends BaseRequest, PK exte
     }
 
     @Override
-    public boolean updateMultiple(R req) throws Exception {
+    public boolean updateStatusMulti(R req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null){
             throw new Exception("Bad request.");

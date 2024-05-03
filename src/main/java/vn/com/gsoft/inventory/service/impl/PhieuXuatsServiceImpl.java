@@ -533,7 +533,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
-    public boolean updateMultiple(PhieuXuatsReq req) throws Exception {
+    public boolean updateStatusMulti(PhieuXuatsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null) {
             throw new Exception("Bad request.");
