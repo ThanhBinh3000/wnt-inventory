@@ -415,6 +415,72 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         byId1.ifPresent(userProfile -> phieuNhaps.setTenNguoiTao(userProfile.getTenDayDu()));
         return phieuNhaps;
     }
+
+    private PhieuNhaps getDetail(Long id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        PhieuNhaps phieuNhaps = optional.get();
+        List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
+        allByPhieuNhapMaPhieuNhap.forEach(item -> {
+            // Get thông tin thuốc
+            Optional<Thuocs> byThuocId = thuocsRepository.findById(item.getThuocThuocId());
+            if(byThuocId.isPresent()){
+                Thuocs thuocs = byThuocId.get();
+                List<DonViTinhs> dviTinh = new ArrayList<>();
+                if(thuocs.getDonViXuatLeMaDonViTinh() > 0){
+                    Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                    if(byId.isPresent()){
+                        byId.get().setFactor(1);
+                        byId.get().setGiaBan(item.getGiaBanLe());
+                        byId.get().setGiaNhap(item.getGiaNhap());
+                        dviTinh.add(byId.get());
+                        thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
+                    }
+                }
+                if(thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())){
+                    Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
+                    if(byId.isPresent()){
+                        byId.get().setFactor(thuocs.getHeSo());
+                        byId.get().setGiaBan(item.getGiaBanLe().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                        byId.get().setGiaNhap(item.getGiaNhap().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                        dviTinh.add(byId.get());
+                        thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
+                    }
+                }
+                thuocs.setListDonViTinhs(dviTinh);
+                InventoryReq inventoryReq = new InventoryReq();
+                inventoryReq.setDrugID(thuocs.getId());
+                inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
+                inventoryReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+                Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
+                inventory.ifPresent(thuocs::setInventory);
+                item.setThuocs(thuocs);
+            }
+            // Get thông tin đơn vị tính
+            Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(item.getDonViTinhMaDonViTinh());
+            byId1.ifPresent(donViTinhs -> item.setTenDonViTinh(donViTinhs.getTenDonViTinh()));
+        });
+        if(phieuNhaps.getNhaCungCapMaNhaCungCap() != null){
+            Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(phieuNhaps.getNhaCungCapMaNhaCungCap());
+            byId.ifPresent(nhaCungCaps -> phieuNhaps.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
+        }
+        if(phieuNhaps.getKhachHangMaKhachHang() != null){
+            Optional<KhachHangs> byId = khachHangsRepository.findById(phieuNhaps.getKhachHangMaKhachHang());
+            byId.ifPresent(khachHangs -> phieuNhaps.setTenKhachHang(khachHangs.getTenKhachHang()));
+        }
+        Optional<PaymentType> byId = paymentTypeRepository.findById(phieuNhaps.getPaymentTypeId());
+        byId.ifPresent(paymentType -> phieuNhaps.setTenPaymentType(paymentType.getDisplayName()));
+        phieuNhaps.setChiTiets(allByPhieuNhapMaPhieuNhap);
+        Optional<UserProfile> byId1 = userProfileRepository.findById(phieuNhaps.getCreatedByUserId());
+        byId1.ifPresent(userProfile -> phieuNhaps.setTenNguoiTao(userProfile.getTenDayDu()));
+        return phieuNhaps;
+    }
     @Override
     public boolean delete(Long id) throws Exception {
         Profile userInfo = this.getLoggedUser();
@@ -434,7 +500,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
 
-        PhieuNhaps phieuNhaps = detail(id);
+        PhieuNhaps phieuNhaps = getDetail(id);
         phieuNhaps.setRecordStatusId(RecordStatusContains.ACTIVE);
         hdrRepo.save(phieuNhaps);
         updateInventory(phieuNhaps);
@@ -447,7 +513,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
 
-        PhieuNhaps phieuNhaps = detail(id);
+        PhieuNhaps phieuNhaps = getDetail(id);
         if (!phieuNhaps.getRecordStatusId().equals(RecordStatusContains.DELETED)) {
             throw new Exception("Không tìm thấy dữ liệu.");
         }
@@ -472,7 +538,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         });
         hdrRepo.saveAll(allByIdIn);
         for (PhieuNhaps e : allByIdIn) {
-            updateInventory(e);
+            PhieuNhaps detail = getDetail(e.getId());
+            updateInventory(detail);
         }
         return true;
     }
