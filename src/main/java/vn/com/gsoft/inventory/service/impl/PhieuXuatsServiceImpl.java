@@ -232,18 +232,24 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         // todo
         double result = 0;
         List<Integer> statusPx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
+        Date finalNgayTinhNo = ngayTinhNo;
         List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(maNhaThuoc, customerId, statusPx)
                 .stream()
                 .filter(x -> (x.getTongTien() - x.getDaTra() - x.getPaymentScoreAmount() - x.getDiscount()) > 0)
+                .filter(x -> (x.getNgayXuat() !=null && x.getNgayXuat().before(finalNgayTinhNo)))
                 .toList();
 
         List<PhieuNhaps> returnNoteCus = phieuNhapsRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(maNhaThuoc, customerId, ENoteType.ReturnFromCustomer)
                 .stream()
                 .filter(x -> (x.getTongTien() - x.getDaTra()) > 0)
+                .filter(x -> (x.getNgayNhap()!=null && x.getNgayNhap().before(finalNgayTinhNo)))
                 .toList();
 
         List<Integer> statusPtc = List.of(InOutCommingType.Incomming, InOutCommingType.OutReturnCustomer);
-        List<PhieuThuChis> inOutNotes = phieuThuChisRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndLoaiPhieuIn(maNhaThuoc, customerId, statusPtc);
+        List<PhieuThuChis> inOutNotes = phieuThuChisRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndLoaiPhieuIn(maNhaThuoc, customerId, statusPtc)
+                .stream()
+                .filter(x -> (x.getNgayTao() !=null && x.getNgayTao().before(finalNgayTinhNo)))
+                .toList();
 
 
         if (!deliveryNoteService.isEmpty()) {
