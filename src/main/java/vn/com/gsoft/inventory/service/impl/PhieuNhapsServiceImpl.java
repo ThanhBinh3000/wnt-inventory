@@ -69,7 +69,22 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
         req.setNhaThuocMaNhaThuoc(getLoggedUser().getNhaThuoc().getMaNhaThuoc());
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
-        return hdrRepo.searchPage(req, pageable);
+        Page<PhieuNhaps> phieuNhaps = hdrRepo.searchPage(req, pageable);
+        phieuNhaps.getContent().forEach(item -> {
+            if(item.getNhaCungCapMaNhaCungCap() != null){
+                Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(item.getNhaCungCapMaNhaCungCap());
+                byId.ifPresent(nhaCungCaps -> item.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
+            }
+            if(item.getKhachHangMaKhachHang() != null){
+                Optional<KhachHangs> byId = khachHangsRepository.findById(item.getKhachHangMaKhachHang());
+                byId.ifPresent(khachHangs -> item.setTenKhachHang(khachHangs.getTenKhachHang()));
+            }
+            Optional<PaymentType> byId = paymentTypeRepository.findById(item.getPaymentTypeId());
+            byId.ifPresent(paymentType -> item.setTenPaymentType(paymentType.getDisplayName()));
+            Optional<UserProfile> byId1 = userProfileRepository.findById(item.getCreatedByUserId());
+            byId1.ifPresent(userProfile -> item.setTenNguoiTao(userProfile.getTenDayDu()));
+        });
+        return phieuNhaps;
     }
 
     @Override
