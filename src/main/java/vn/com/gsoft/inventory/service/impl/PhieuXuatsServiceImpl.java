@@ -93,7 +93,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             req.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
         Page<PhieuXuats> phieuXuats = hdrRepo.searchPage(req, pageable);
-        for(PhieuXuats px: phieuXuats){
+        for(PhieuXuats px: phieuXuats.getContent()){
             if (px.getKhachHangMaKhachHang() != null && px.getKhachHangMaKhachHang() > 0) {
                 px.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(px.getKhachHangMaKhachHang()).get().getTenKhachHang());
             }
