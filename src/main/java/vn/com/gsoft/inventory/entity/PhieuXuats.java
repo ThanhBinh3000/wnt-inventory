@@ -190,6 +190,8 @@ public class PhieuXuats extends BaseEntity {
     @Transient
     private String targetStoreText;
     @Transient
+    private String khachHangMaKhachHangText;
+    @Transient
     private List<PhieuXuatChiTiets> chiTiets;
 }
 

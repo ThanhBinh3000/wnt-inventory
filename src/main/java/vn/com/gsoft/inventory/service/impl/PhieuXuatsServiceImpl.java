@@ -92,7 +92,23 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (req.getRecordStatusId() == null) {
             req.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
-        return hdrRepo.searchPage(req, pageable);
+        Page<PhieuXuats> phieuXuats = hdrRepo.searchPage(req, pageable);
+        for(PhieuXuats px: phieuXuats){
+            if (px.getKhachHangMaKhachHang() != null && px.getKhachHangMaKhachHang() > 0) {
+                px.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(px.getKhachHangMaKhachHang()).get().getTenKhachHang());
+            }
+            if (px.getTargetStoreId() != null && px.getTargetStoreId() > 0) {
+                px.setTargetStoreText(this.nhaThuocsRepository.findById(px.getTargetStoreId()).get().getTenNhaThuoc());
+            }
+            if (px.getNhaCungCapMaNhaCungCap() != null && px.getNhaCungCapMaNhaCungCap() > 0) {
+                px.setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(px.getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+            }
+            if (px.getCreatedByUserId() != null && px.getCreatedByUserId() > 0) {
+                px.setCreatedByUserText(this.userProfileRepository.findById(px.getCreatedByUserId()).get().getTenDayDu());
+            }
+        }
+
+        return phieuXuats;
     }
 
     @Override
@@ -418,6 +434,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuat(optional.get().getId());
             phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
+            if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {
+                optional.get().setKhachHangMaKhachHangText(this.khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang()).get().getTenKhachHang());
+            }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
                 optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
             }
