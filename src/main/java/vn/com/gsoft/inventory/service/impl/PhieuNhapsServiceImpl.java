@@ -274,6 +274,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         PhieuNhaps init = init(e.getMaLoaiXuatNhap(), null);
         pn.setSoPhieuNhap(init.getSoPhieuNhap());
         pn.setNhaThuocMaNhaThuoc(nhaThuocsRepository.findById(e.getTargetStoreId()).get().getMaNhaThuoc());
+        pn.setStoreId(e.getTargetStoreId());
+        pn.setTargetId(null);
+        pn.setTargetStoreId(null);
+        pn.setTargetManagementId(null);
         pn.setRecordStatusId(RecordStatusContains.ACTIVE);
         pn.setIsModified(false);
         e.setCreated(new Date());
@@ -304,6 +308,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         PhieuNhaps init = init(e.getMaLoaiXuatNhap(), null);
         pn.setSoPhieuNhap(init.getSoPhieuNhap());
         pn.setNhaThuocMaNhaThuoc(nhaThuocsRepository.findById(e.getTargetStoreId()).get().getMaNhaThuoc());
+        pn.setStoreId(e.getTargetStoreId());
+        pn.setTargetId(null);
+        pn.setTargetStoreId(null);
+        pn.setTargetManagementId(null);
         pn.setRecordStatusId(RecordStatusContains.ACTIVE);
         pn.setIsModified(false);
         e.setCreated(new Date());
