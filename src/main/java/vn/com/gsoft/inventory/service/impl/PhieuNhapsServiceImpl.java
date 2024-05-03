@@ -421,13 +421,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
 
-        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
-        if (optional.isEmpty()) {
-            throw new Exception("Không tìm thấy dữ liệu.");
-        }
-        optional.get().setRecordStatusId(RecordStatusContains.DELETED);
-        hdrRepo.save(optional.get());
-        updateInventory(optional.get());
+        PhieuNhaps phieuNhaps = detail(id);
+        phieuNhaps.setRecordStatusId(RecordStatusContains.DELETED);
+        hdrRepo.save(phieuNhaps);
+        updateInventory(phieuNhaps);
         return true;
     }
 
@@ -437,16 +434,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
 
-        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
-        if (optional.isEmpty()) {
-            throw new Exception("Không tìm thấy dữ liệu.");
-        }
-        if (!optional.get().getRecordStatusId().equals(RecordStatusContains.DELETED)) {
-            throw new Exception("Không tìm thấy dữ liệu.");
-        }
-        optional.get().setRecordStatusId(RecordStatusContains.ACTIVE);
-        hdrRepo.save(optional.get());
-        updateInventory(optional.get());
+        PhieuNhaps phieuNhaps = detail(id);
+        phieuNhaps.setRecordStatusId(RecordStatusContains.ACTIVE);
+        hdrRepo.save(phieuNhaps);
+        updateInventory(phieuNhaps);
         return true;
     }
 
@@ -456,16 +447,13 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
 
-        Optional<PhieuNhaps> optional = hdrRepo.findById(id);
-        if (optional.isEmpty()) {
+        PhieuNhaps phieuNhaps = detail(id);
+        if (!phieuNhaps.getRecordStatusId().equals(RecordStatusContains.DELETED)) {
             throw new Exception("Không tìm thấy dữ liệu.");
         }
-        if (!optional.get().getRecordStatusId().equals(RecordStatusContains.DELETED)) {
-            throw new Exception("Không tìm thấy dữ liệu.");
-        }
-        optional.get().setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
-        hdrRepo.save(optional.get());
-        updateInventory(optional.get());
+        phieuNhaps.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
+        hdrRepo.save(phieuNhaps);
+        updateInventory(phieuNhaps);
         return true;
     }
 
