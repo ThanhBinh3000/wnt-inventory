@@ -107,7 +107,7 @@ public class PhieuXuatsController {
     @PostMapping(value = PathContains.URL_SYNC, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> sync(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.sync(idSearchReq.getId())));
+        return ResponseEntity.ok(ResponseUtils.ok(service.sync(idSearchReq.getNhaThuocMaNhaThuoc(), idSearchReq.getListIds())));
     }
 
     @PostMapping(value = PathContains.URL_RESET_SYNC, produces = MediaType.APPLICATION_JSON_VALUE)

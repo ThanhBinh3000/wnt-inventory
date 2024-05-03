@@ -6,6 +6,7 @@ import vn.com.gsoft.inventory.entity.PhieuXuats;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 
 import java.util.Date;
+import java.util.List;
 
 public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq, Long> {
 
@@ -16,7 +17,7 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     @Transactional
     PhieuXuats unlock(Long id) throws Exception;
     @Transactional
-    PhieuXuats sync(Long id);
+    Boolean sync(String nhaThuocMaNhaThuoc, List<Long> listIds) throws Exception;
     @Transactional
     PhieuXuats resetSync(Long id) throws Exception;
     @Transactional

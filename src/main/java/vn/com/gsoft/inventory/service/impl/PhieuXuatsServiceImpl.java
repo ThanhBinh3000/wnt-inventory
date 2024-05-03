@@ -180,9 +180,28 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
-    public PhieuXuats sync(Long id) {
+    public Boolean sync(String nhaThuocMaNhaThuoc, List<Long> listIds) throws Exception {
+        List<PhieuXuats> pxs;
+        List<Long> synStatusIds = List.of(ESynStatus.NotSyn, ESynStatus.Failed);
+        if (listIds.isEmpty()) {
+            pxs = hdrRepo.findByNhaThuocMaNhaThuocAndMaLoaiXuatNhapAndSynStatusIdIn(nhaThuocMaNhaThuoc, ENoteType.Delivery, synStatusIds);
+        } else {
+            pxs = hdrRepo.findByNhaThuocMaNhaThuocAndIdInAndMaLoaiXuatNhapAndSynStatusIdIn(nhaThuocMaNhaThuoc, listIds, ENoteType.Delivery, synStatusIds);
+        }
+        Set<Long> idNhaThuocs = pxs.stream().map(PhieuXuats::getTargetStoreId).collect(Collectors.toSet());
+        List<NhaThuocs> nhaThuocs = nhaThuocsRepository.findAllByIdIn(idNhaThuocs.stream().toList());
+        if (nhaThuocs.stream().anyMatch(x -> x.getIsUploading() != null && x.getIsUploading())) {
+            throw new Exception("Hệ thống đang xử lý việc upload , đồng bộ bạn vui lòng chờ hệ thống xử lý xong mới có thể upload , đồng bộ tiếp.");
+        }
+        List<PhieuNhaps> pns = new ArrayList<>();
+        for (PhieuXuats px : pxs) {
+            PhieuNhaps pn = this.phieuNhapsService.createByPhieuXuats(px);
+            if (pn != null) {
+                pns.add(pn);
+            }
+        }
 
-        return null;
+        return true;
     }
 
     @Override
@@ -226,7 +245,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
     @Override
     public Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo) {
-        if(ngayTinhNo == null){
+        if (ngayTinhNo == null) {
             ngayTinhNo = new Date();
         }
         double result = 0;
@@ -235,19 +254,19 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(maNhaThuoc, customerId, statusPx)
                 .stream()
                 .filter(x -> (x.getTongTien() - x.getDaTra() - x.getPaymentScoreAmount() - x.getDiscount()) > 0)
-                .filter(x -> (x.getNgayXuat() !=null && x.getNgayXuat().before(finalNgayTinhNo)))
+                .filter(x -> (x.getNgayXuat() != null && x.getNgayXuat().before(finalNgayTinhNo)))
                 .toList();
 
         List<PhieuNhaps> returnNoteCus = phieuNhapsRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(maNhaThuoc, customerId, ENoteType.ReturnFromCustomer)
                 .stream()
                 .filter(x -> (x.getTongTien() - x.getDaTra()) > 0)
-                .filter(x -> (x.getNgayNhap()!=null && x.getNgayNhap().before(finalNgayTinhNo)))
+                .filter(x -> (x.getNgayNhap() != null && x.getNgayNhap().before(finalNgayTinhNo)))
                 .toList();
 
         List<Integer> statusPtc = List.of(InOutCommingType.Incomming, InOutCommingType.OutReturnCustomer);
         List<PhieuThuChis> inOutNotes = phieuThuChisRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndLoaiPhieuIn(maNhaThuoc, customerId, statusPtc)
                 .stream()
-                .filter(x -> (x.getNgayTao() !=null && x.getNgayTao().before(finalNgayTinhNo)))
+                .filter(x -> (x.getNgayTao() != null && x.getNgayTao().before(finalNgayTinhNo)))
                 .toList();
 
 
