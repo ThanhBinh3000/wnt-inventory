@@ -229,7 +229,6 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if(ngayTinhNo == null){
             ngayTinhNo = new Date();
         }
-        // todo
         double result = 0;
         List<Integer> statusPx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
         Date finalNgayTinhNo = ngayTinhNo;
