@@ -23,7 +23,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private Long maLoaiXuatNhap;
     private Long khachHangMaKhachHang;
     private Long nhaCungCapMaNhaCungCap;
-    private Integer bacSyMaBacSy;
+    private Long bacSyMaBacSy;
     private Boolean active;
     private Boolean isModified;
     private Boolean locked;

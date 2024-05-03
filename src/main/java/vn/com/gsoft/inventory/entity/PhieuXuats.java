@@ -46,7 +46,7 @@ public class PhieuXuats extends BaseEntity {
     @Transient
     private String nhaCungCapMaNhaCungCapText;
     @Column(name = "BacSy_MaBacSy")
-    private Integer bacSyMaBacSy;
+    private Long bacSyMaBacSy;
     @Column(name = "Active")
     private Boolean active;
     @Column(name = "IsModified")
@@ -191,6 +191,8 @@ public class PhieuXuats extends BaseEntity {
     private String targetStoreText;
     @Transient
     private String khachHangMaKhachHangText;
+    @Transient
+    private String bacSyMaBacSyText;
     @Transient
     private List<PhieuXuatChiTiets> chiTiets;
 }

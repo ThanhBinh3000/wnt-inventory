@@ -38,6 +38,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private PhieuXuatChiTietsRepository phieuXuatChiTietsRepository;
     private ApplicationSettingService applicationSettingService;
     private KhachHangsRepository khachHangsRepository;
+    private BacSiesRepository bacSiesRepository;
     private NhaCungCapsRepository nhaCungCapsRepository;
     private PhieuNhapsService phieuNhapsService;
     private PhieuNhapsRepository phieuNhapsRepository;
@@ -64,6 +65,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  NhaThuocsRepository nhaThuocsRepository,
                                  PhieuNhapsRepository phieuNhapsRepository,
                                  PhieuThuChisRepository phieuThuChisRepository,
+                                 BacSiesRepository bacSiesRepository,
                                  PhieuNhapsService phieuNhapsService, KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -81,6 +83,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.inventoryRepository = inventoryRepository;
         this.phieuNhapsRepository = phieuNhapsRepository;
         this.phieuThuChisRepository = phieuThuChisRepository;
+        this.bacSiesRepository =bacSiesRepository;
     }
 
     @Override
@@ -430,6 +433,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
             if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {
                 optional.get().setKhachHangMaKhachHangText(this.khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang()).get().getTenKhachHang());
+            }
+            if (optional.get().getBacSyMaBacSy() != null && optional.get().getBacSyMaBacSy() > 0) {
+                optional.get().setBacSyMaBacSyText(this.bacSiesRepository.findById(optional.get().getBacSyMaBacSy()).get().getTenBacSy());
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
                 optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
