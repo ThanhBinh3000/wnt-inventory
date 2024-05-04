@@ -67,6 +67,7 @@ public class PhieuNhapsController {
     public ResponseEntity<BaseResponse> delete(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
     }
+
     @PostMapping(value = PathContains.URL_DELETE_DATABASE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> deleteDatabase(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
@@ -78,6 +79,7 @@ public class PhieuNhapsController {
     public ResponseEntity<BaseResponse> updStatusMulti(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.updateStatusMulti(idSearchReq)));
     }
+
     @PostMapping(value = PathContains.URL_LOCK, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> lock(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
@@ -95,11 +97,7 @@ public class PhieuNhapsController {
     public ResponseEntity<BaseResponse> restore(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.restore(idSearchReq.getId())));
     }
-    @PostMapping(value = PathContains.URL_RESET_SYNC, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<BaseResponse> resetSync(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
-        return ResponseEntity.ok(ResponseUtils.ok(service.resetSync(idSearchReq.getId())));
-    }
+
     @PostMapping(value = PathContains.URL_APPROVE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> approve(@Valid @RequestBody PhieuNhapsReq idSearchReq) throws Exception {

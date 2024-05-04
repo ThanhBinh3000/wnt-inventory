@@ -218,11 +218,16 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     @Override
-    public PhieuXuats resetSync(Long id) throws Exception {
-        PhieuXuats detail = detail(id);
-        detail.setSynStatusId(ESynStatus.NotSyn);
-        hdrRepo.save(detail);
-        return detail;
+    public Boolean resetSync(List<Long> ids) throws Exception {
+        if(!ids.isEmpty()){
+            for(Long id: ids){
+                PhieuXuats detail = detail(id);
+                detail.setSynStatusId(ESynStatus.NotSyn);
+                hdrRepo.save(detail);
+            }
+        }
+
+        return true;
     }
 
     @Override

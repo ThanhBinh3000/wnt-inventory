@@ -19,7 +19,7 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     @Transactional
     Boolean sync(String nhaThuocMaNhaThuoc, List<Long> listIds) throws Exception;
     @Transactional
-    PhieuXuats resetSync(Long id) throws Exception;
+    Boolean resetSync(List<Long> ids) throws Exception;
     @Transactional
     PhieuXuats medicineSync(Long id);
 
