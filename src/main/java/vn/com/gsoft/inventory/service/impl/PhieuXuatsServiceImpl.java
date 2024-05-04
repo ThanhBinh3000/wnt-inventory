@@ -83,7 +83,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.inventoryRepository = inventoryRepository;
         this.phieuNhapsRepository = phieuNhapsRepository;
         this.phieuThuChisRepository = phieuThuChisRepository;
-        this.bacSiesRepository =bacSiesRepository;
+        this.bacSiesRepository = bacSiesRepository;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             req.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
         Page<PhieuXuats> phieuXuats = hdrRepo.searchPage(req, pageable);
-        for(PhieuXuats px: phieuXuats.getContent()){
+        for (PhieuXuats px : phieuXuats.getContent()) {
             if (px.getKhachHangMaKhachHang() != null && px.getKhachHangMaKhachHang() > 0) {
                 px.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(px.getKhachHangMaKhachHang()).get().getTenKhachHang());
             }
@@ -219,8 +219,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
     @Override
     public Boolean resetSync(List<Long> ids) throws Exception {
-        if(!ids.isEmpty()){
-            for(Long id: ids){
+        if (!ids.isEmpty()) {
+            for (Long id : ids) {
                 PhieuXuats detail = detail(id);
                 detail.setSynStatusId(ESynStatus.NotSyn);
                 hdrRepo.save(detail);
@@ -267,9 +267,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             ngayTinhNo = new Date();
         }
         double result = 0;
-        List<Integer> statusPx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
+        List<Integer> typePx = List.of(ENoteType.Delivery, ENoteType.InitialSupplierDebt);
+        List<Long> statusPx = List.of(RecordStatusContains.ACTIVE, RecordStatusContains.ARCHIVED);
         Date finalNgayTinhNo = ngayTinhNo;
-        List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(maNhaThuoc, customerId, statusPx)
+        List<PhieuXuats> deliveryNoteService = hdrRepo.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndMaLoaiXuatNhapInAndRecordStatusIdIn(maNhaThuoc, customerId, typePx, statusPx)
                 .stream()
                 .filter(x -> (x.getTongTien() - x.getDaTra() - x.getPaymentScoreAmount() - x.getDiscount()) > 0)
                 .filter(x -> (x.getNgayXuat() != null && x.getNgayXuat().before(finalNgayTinhNo)))
@@ -292,28 +293,28 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             result = deliveryNoteService.stream()
                     .mapToDouble(i -> i.getTongTien() - i.getDaTra() - i.getPaymentScoreAmount() - i.getDiscount())
                     .sum();
+        }
+        if (!returnNoteCus.isEmpty()) {
+            result -= returnNoteCus.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra())
+                    .sum();
+        }
 
-            if (!returnNoteCus.isEmpty()) {
-                result -= returnNoteCus.stream()
-                        .mapToDouble(x -> x.getTongTien() - x.getDaTra())
+        if (!inOutNotes.isEmpty()) {
+            if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))) {
+                result -= inOutNotes.stream()
+                        .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))
+                        .mapToDouble(PhieuThuChis::getAmount)
                         .sum();
             }
 
-            if (!inOutNotes.isEmpty()) {
-                if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))) {
-                    result -= inOutNotes.stream()
-                            .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.Incomming))
-                            .mapToDouble(PhieuThuChis::getAmount)
-                            .sum();
-                }
-
-                if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))) {
-                    result += inOutNotes.stream()
-                            .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))
-                            .mapToDouble(PhieuThuChis::getAmount)
-                            .sum();
-                }
+            if (inOutNotes.stream().anyMatch(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))) {
+                result += inOutNotes.stream()
+                        .filter(x -> Objects.equals(x.getLoaiPhieu(), InOutCommingType.OutReturnCustomer))
+                        .mapToDouble(PhieuThuChis::getAmount)
+                        .sum();
             }
+
         }
         return result;
     }

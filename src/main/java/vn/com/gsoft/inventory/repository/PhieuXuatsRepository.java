@@ -8,18 +8,19 @@ import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.inventory.entity.PhieuXuats;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXuatsReq, Long> {
     @Query("SELECT c FROM PhieuXuats c " +
             "WHERE 1=1 "
+            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
             + " AND (:#{#param.dienGiai} IS NULL OR lower(c.dienGiai) LIKE lower(concat('%',CONCAT(:#{#param.dienGiai},'%'))))"
             + " AND (:#{#param.tongTien} IS NULL OR c.tongTien = :#{#param.tongTien}) "
             + " AND (:#{#param.daTra} IS NULL OR c.daTra = :#{#param.daTra}) "
-            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
             + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR c.khachHangMaKhachHang = :#{#param.khachHangMaKhachHang}) "
             + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR c.nhaCungCapMaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
@@ -77,12 +78,12 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
 
     @Query("SELECT c FROM PhieuXuats c " +
             "WHERE 1=1 "
+            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
             + " AND (:#{#param.dienGiai} IS NULL OR lower(c.dienGiai) LIKE lower(concat('%',CONCAT(:#{#param.dienGiai},'%'))))"
             + " AND (:#{#param.tongTien} IS NULL OR c.tongTien = :#{#param.tongTien}) "
             + " AND (:#{#param.daTra} IS NULL OR c.daTra = :#{#param.daTra}) "
-            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
             + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR c.khachHangMaKhachHang = :#{#param.khachHangMaKhachHang}) "
             + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR c.nhaCungCapMaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
@@ -142,9 +143,9 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
 
     List<PhieuXuats> findByNhaThuocMaNhaThuocAndSoPhieuXuatAndMaLoaiXuatNhap(String nhaThuocMaNhaThuoc, Long soPhieuXuat, Long maLoaiXuatNhap);
 
-    List<PhieuXuats> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusIdIn(String maNhaThuoc, Long customerId, List<Integer> statusPx);
-
     List<PhieuXuats> findByNhaThuocMaNhaThuocAndMaLoaiXuatNhapAndSynStatusIdIn(String nhaThuocMaNhaThuoc, Integer delivery, List<Long> synStatusIds);
 
     List<PhieuXuats> findByNhaThuocMaNhaThuocAndIdInAndMaLoaiXuatNhapAndSynStatusIdIn(String nhaThuocMaNhaThuoc, List<Long> listIds, Integer delivery, List<Long> synStatusIds);
+
+    List<PhieuXuats> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndMaLoaiXuatNhapInAndRecordStatusIdIn(String maNhaThuoc, Long customerId, List<Integer> typePx, List<Long> statusPx);
 }
