@@ -178,7 +178,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
 
     @Override
     public PhieuNhaps approve(Long id) throws Exception {
-        PhieuNhaps detail = detail(id);
+        PhieuNhaps detail = getDetail(id);
         detail.setRecordStatusId(RecordStatusContains.ACTIVE);
         hdrRepo.save(detail);
         for(PhieuNhapChiTiets ct: detail.getChiTiets()){
@@ -191,7 +191,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
 
     @Override
     public PhieuNhaps cancel(Long id) throws Exception {
-        PhieuNhaps detail = detail(id);
+        PhieuNhaps detail = getDetail(id);
         detail.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
         hdrRepo.save(detail);
         for(PhieuNhapChiTiets ct: detail.getChiTiets()){

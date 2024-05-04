@@ -232,7 +232,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
     @Override
     public PhieuXuats approve(Long id) throws Exception {
-        PhieuXuats detail = detail(id);
+        PhieuXuats detail = getDetail(id);
         detail.setRecordStatusId(RecordStatusContains.ACTIVE);
         hdrRepo.save(detail);
         for (PhieuXuatChiTiets ct : detail.getChiTiets()) {
@@ -245,7 +245,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
     @Override
     public PhieuXuats cancel(Long id) throws Exception {
-        PhieuXuats detail = detail(id);
+        PhieuXuats detail = getDetail(id);
         detail.setRecordStatusId(RecordStatusContains.DELETED_FOREVER);
         hdrRepo.save(detail);
         for (PhieuXuatChiTiets ct : detail.getChiTiets()) {
