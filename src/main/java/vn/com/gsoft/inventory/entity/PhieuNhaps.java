@@ -140,5 +140,7 @@ public class PhieuNhaps extends BaseEntity {
 
     @Transient
     private String tenNguoiTao;
+    @Transient
+    private String targetStoreText;
 }
 

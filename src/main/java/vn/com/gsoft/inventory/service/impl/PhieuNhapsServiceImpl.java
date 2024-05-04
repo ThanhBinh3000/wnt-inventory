@@ -77,18 +77,26 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         }
         Page<PhieuNhaps> phieuNhaps = hdrRepo.searchPage(req, pageable);
         phieuNhaps.getContent().forEach(item -> {
-            if(item.getNhaCungCapMaNhaCungCap() != null){
+            if(item.getNhaCungCapMaNhaCungCap() != null && item.getNhaCungCapMaNhaCungCap() > 0){
                 Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(item.getNhaCungCapMaNhaCungCap());
                 byId.ifPresent(nhaCungCaps -> item.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
             }
-            if(item.getKhachHangMaKhachHang() != null){
+            if(item.getKhachHangMaKhachHang() != null && item.getKhachHangMaKhachHang() >0){
                 Optional<KhachHangs> byId = khachHangsRepository.findById(item.getKhachHangMaKhachHang());
                 byId.ifPresent(khachHangs -> item.setTenKhachHang(khachHangs.getTenKhachHang()));
             }
-            Optional<PaymentType> byId = paymentTypeRepository.findById(item.getPaymentTypeId());
-            byId.ifPresent(paymentType -> item.setTenPaymentType(paymentType.getDisplayName()));
-            Optional<UserProfile> byId1 = userProfileRepository.findById(item.getCreatedByUserId());
-            byId1.ifPresent(userProfile -> item.setTenNguoiTao(userProfile.getTenDayDu()));
+            if(item.getPaymentTypeId() != null && item.getPaymentTypeId() >0){
+                Optional<PaymentType> byId = paymentTypeRepository.findById(item.getPaymentTypeId());
+                byId.ifPresent(paymentType -> item.setTenPaymentType(paymentType.getDisplayName()));
+            }
+            if(item.getCreatedByUserId() != null && item.getCreatedByUserId() >0){
+                Optional<UserProfile> byId1 = userProfileRepository.findById(item.getCreatedByUserId());
+                byId1.ifPresent(userProfile -> item.setTenNguoiTao(userProfile.getTenDayDu()));
+            }
+            if(item.getTargetStoreId() != null && item.getTargetStoreId()>0){
+                Optional<NhaThuocs> byId = nhaThuocsRepository.findById(item.getTargetStoreId());
+                byId.ifPresent(nhaThuocs -> item.setTargetStoreText(nhaThuocs.getTenNhaThuoc()));
+            }
         });
         return phieuNhaps;
     }
@@ -400,19 +408,29 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             Optional<DonViTinhs> byId1 = donViTinhsRepository.findById(item.getDonViTinhMaDonViTinh());
             byId1.ifPresent(donViTinhs -> item.setTenDonViTinh(donViTinhs.getTenDonViTinh()));
         });
-        if(phieuNhaps.getNhaCungCapMaNhaCungCap() != null){
+        if(phieuNhaps.getNhaCungCapMaNhaCungCap() != null && phieuNhaps.getNhaCungCapMaNhaCungCap()> 0){
             Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(phieuNhaps.getNhaCungCapMaNhaCungCap());
             byId.ifPresent(nhaCungCaps -> phieuNhaps.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
         }
-        if(phieuNhaps.getKhachHangMaKhachHang() != null){
+        if(phieuNhaps.getKhachHangMaKhachHang() != null && phieuNhaps.getKhachHangMaKhachHang()>0){
             Optional<KhachHangs> byId = khachHangsRepository.findById(phieuNhaps.getKhachHangMaKhachHang());
             byId.ifPresent(khachHangs -> phieuNhaps.setTenKhachHang(khachHangs.getTenKhachHang()));
         }
-        Optional<PaymentType> byId = paymentTypeRepository.findById(phieuNhaps.getPaymentTypeId());
-        byId.ifPresent(paymentType -> phieuNhaps.setTenPaymentType(paymentType.getDisplayName()));
+        if(phieuNhaps.getPaymentTypeId() != null && phieuNhaps.getPaymentTypeId()>0){
+            Optional<PaymentType> byId = paymentTypeRepository.findById(phieuNhaps.getPaymentTypeId());
+            byId.ifPresent(paymentType -> phieuNhaps.setTenPaymentType(paymentType.getDisplayName()));
+        }
+        if(phieuNhaps.getCreatedByUserId() != null && phieuNhaps.getCreatedByUserId()>0){
+            Optional<UserProfile> byId1 = userProfileRepository.findById(phieuNhaps.getCreatedByUserId());
+            byId1.ifPresent(userProfile -> phieuNhaps.setTenNguoiTao(userProfile.getTenDayDu()));
+        }
+        if(phieuNhaps.getTargetStoreId() != null && phieuNhaps.getTargetStoreId()>0){
+            Optional<NhaThuocs> byId = nhaThuocsRepository.findById(phieuNhaps.getTargetStoreId());
+            byId.ifPresent(nhaThuocs -> phieuNhaps.setTargetStoreText(nhaThuocs.getTenNhaThuoc()));
+        }
+
         phieuNhaps.setChiTiets(allByPhieuNhapMaPhieuNhap);
-        Optional<UserProfile> byId1 = userProfileRepository.findById(phieuNhaps.getCreatedByUserId());
-        byId1.ifPresent(userProfile -> phieuNhaps.setTenNguoiTao(userProfile.getTenDayDu()));
+
         return phieuNhaps;
     }
 

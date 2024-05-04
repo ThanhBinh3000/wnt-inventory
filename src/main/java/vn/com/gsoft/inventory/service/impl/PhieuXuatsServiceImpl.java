@@ -103,6 +103,13 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             if (px.getCreatedByUserId() != null && px.getCreatedByUserId() > 0) {
                 px.setCreatedByUserText(this.userProfileRepository.findById(px.getCreatedByUserId()).get().getTenDayDu());
             }
+            if(px.getTargetStoreId() != null && px.getTargetStoreId()>0){
+                Optional<NhaThuocs> byId = nhaThuocsRepository.findById(px.getTargetStoreId());
+                byId.ifPresent(nhaThuocs -> px.setTargetStoreText(nhaThuocs.getTenNhaThuoc()));
+            }
+            if (px.getNhaCungCapMaNhaCungCap() != null && px.getNhaCungCapMaNhaCungCap() > 0) {
+                px.setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(px.getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+            }
         }
 
         return phieuXuats;
