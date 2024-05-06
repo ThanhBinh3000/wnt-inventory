@@ -13,8 +13,10 @@ import java.util.List;
 
 @Repository
 public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChiTiets, PhieuXuatChiTietsReq, Long> {
-    @Query("SELECT c FROM PhieuXuatChiTiets c " +
+    @Query("SELECT c FROM PhieuXuatChiTiets c JOIN PhieuXuats d ON c.phieuXuatMaPhieuXuat = d.id " +
             "WHERE 1=1 "
+            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR d.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            + " AND (:#{#param.recordStatusId} IS NULL OR d.recordStatusId = :#{#param.recordStatusId}) "
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.phieuXuatMaPhieuXuat} IS NULL OR c.phieuXuatMaPhieuXuat = :#{#param.phieuXuatMaPhieuXuat}) "
             + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(c.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
@@ -36,7 +38,7 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             + " AND (:#{#param.itemOrder} IS NULL OR c.itemOrder = :#{#param.itemOrder}) "
             + " AND (:#{#param.archiveDrugId} IS NULL OR c.archiveDrugId = :#{#param.archiveDrugId}) "
             + " AND (:#{#param.archiveUnitId} IS NULL OR c.archiveUnitId = :#{#param.archiveUnitId}) "
-            + " AND (:#{#param.recordStatusId} IS NULL OR c.recordStatusId = :#{#param.recordStatusId}) "
+            + " AND (:#{#param.recordStatusId} IS NULL OR c.recordStatusId = 0) "
             + " AND (:#{#param.preRetailQuantity} IS NULL OR c.preRetailQuantity = :#{#param.preRetailQuantity}) "
             + " AND (:#{#param.batchNumber} IS NULL OR lower(c.batchNumber) LIKE lower(concat('%',CONCAT(:#{#param.batchNumber},'%'))))"
             + " AND (:#{#param.referenceId} IS NULL OR c.referenceId = :#{#param.referenceId}) "
@@ -51,6 +53,8 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             + " AND (:#{#param.refPrice} IS NULL OR c.refPrice = :#{#param.refPrice}) "
             + " AND (:#{#param.usage} IS NULL OR lower(c.usage) LIKE lower(concat('%',CONCAT(:#{#param.usage},'%'))))"
             + " AND (:#{#param.outOwnerPriceChild} IS NULL OR c.outOwnerPriceChild = :#{#param.outOwnerPriceChild}) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR d.created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR d.created <= :#{#param.toDateCreated}) "
             + " ORDER BY c.id desc"
     )
     Page<PhieuXuatChiTiets> searchPage(@Param("param") PhieuXuatChiTietsReq param, Pageable pageable);
