@@ -47,7 +47,9 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
     @Override
     public Page<PhieuXuatChiTiets> searchPage(PhieuXuatChiTietsReq req) throws Exception {
         Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
-        req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        if(req.getRecordStatusId() ==null){
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
         Page<PhieuXuatChiTiets> xuatChiTiets = hdrRepo.searchPage(req, pageable);
         for(PhieuXuatChiTiets ct: xuatChiTiets.getContent()){
             if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
