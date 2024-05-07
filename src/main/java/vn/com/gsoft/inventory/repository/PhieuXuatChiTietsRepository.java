@@ -20,6 +20,7 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.phieuXuatMaPhieuXuat} IS NULL OR c.phieuXuatMaPhieuXuat = :#{#param.phieuXuatMaPhieuXuat}) "
             + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR lower(c.nhaThuocMaNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.nhaThuocMaNhaThuoc},'%'))))"
+            + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR d.khachHangMaKhachHang = :#{#param.khachHangMaKhachHang}) "
             + " AND (:#{#param.thuocThuocId} IS NULL OR c.thuocThuocId = :#{#param.thuocThuocId}) "
             + " AND (:#{#param.donViTinhMaDonViTinh} IS NULL OR c.donViTinhMaDonViTinh = :#{#param.donViTinhMaDonViTinh}) "
             + " AND (:#{#param.chietKhau} IS NULL OR c.chietKhau = :#{#param.chietKhau}) "

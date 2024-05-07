@@ -53,4 +53,6 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private BigDecimal refPrice;
     private String usage;
     private BigDecimal outOwnerPriceChild;
+
+    private Long khachHangMaKhachHang;
 }
