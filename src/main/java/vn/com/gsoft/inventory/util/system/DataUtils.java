@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,12 +20,18 @@ public class DataUtils {
             try {
                 T e = clazz.getDeclaredConstructor().newInstance();
                 for (Field field : clazz.getDeclaredFields()) {
-                    var value = tuple.get(field.getName());
+                    Object value = null;
+                    try {
+                        value = tuple.get(field.getName());
+                    } catch (Exception exx) {
+                        value = null;
+                    }
                     if (value != null) {
                         value = convertValueIfNeeded(value, field.getType());
                         field.setAccessible(true);
                         field.set(e, value);
                     }
+
                 }
                 return e;
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
@@ -42,7 +49,12 @@ public class DataUtils {
                 T e = clazz.getDeclaredConstructor().newInstance(); // Sử dụng getDeclaredConstructor().newInstance() để tạo instance
                 for (Field field : clazz.getDeclaredFields()) {
                     field.setAccessible(true); // Cho phép truy cập các thuộc tính
-                    Object value = tuple.get(field.getName());
+                    Object value = null;
+                    try {
+                        value = tuple.get(field.getName());
+                    } catch (Exception exx) {
+                        value = null;
+                    }
                     if (value != null) {
                         value = convertValueIfNeeded(value, field.getType());
                         field.set(e, value);
@@ -62,7 +74,12 @@ public class DataUtils {
             T e = clazz.getDeclaredConstructor().newInstance(); // Sử dụng getDeclaredConstructor().newInstance() để tạo instance
             for (Field field : clazz.getDeclaredFields()) {
                 field.setAccessible(true); // Cho phép truy cập các thuộc tính
-                Object value = tuple.get(field.getName());
+                Object value = null;
+                try {
+                    value = tuple.get(field.getName());
+                } catch (Exception exx) {
+                    value = null;
+                }
                 if (value != null) {
                     value = convertValueIfNeeded(value, field.getType());
                     field.set(e, value);
@@ -82,6 +99,10 @@ public class DataUtils {
             return ((Integer) value).longValue();
         } else if (value instanceof Float && targetType.equals(Double.class)) {
             return ((Float) value).doubleValue();
+        } else if (value instanceof BigDecimal && targetType.equals(Double.class)) {
+            return ((BigDecimal) value).doubleValue();
+        } else if (value instanceof Integer && targetType.equals(Double.class)) {
+            return ((Integer) value).doubleValue();
         }
         // Thêm các trường hợp chuyển đổi khác nếu cần
         return value;

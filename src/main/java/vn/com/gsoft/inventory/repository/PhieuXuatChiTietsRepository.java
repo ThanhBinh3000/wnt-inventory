@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.repository;
 
+import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -101,9 +102,80 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             + " ORDER BY c.id desc"
     )
     List<PhieuXuatChiTiets> searchList(@Param("param") PhieuXuatChiTietsReq param);
+
     @Modifying
     @Query("UPDATE PhieuXuatChiTiets p SET p.recordStatusId = 1 WHERE p.phieuXuatMaPhieuXuat = ?1")
     void deleteByPhieuXuatMaPhieuXuat(Long id);
 
     List<PhieuXuatChiTiets> findByPhieuXuatMaPhieuXuat(Long phieuXuatMaPhieuXuat);
+
+    @Query(value = "SELECT " +
+            " c.id, " +
+            " c.PhieuXuat_MaPhieuXuat as phieuXuatMaPhieuXuat, " +
+            " c.NhaThuoc_MaNhaThuoc as nhaThuocMaNhaThuoc, " +
+            " c.Thuoc_ThuocId as thuocThuocId, " +
+            " c.DonViTinh_MaDonViTinh as donViTinhMaDonViTinh, " +
+            " c.ChietKhau as chietKhau, " +
+            " c.GiaXuat as giaXuat, " +
+            " c.SoLuong as soLuong, " +
+            " c.Option1 as option1, " +
+            " c.Option2 as option2, " +
+            " c.Option3 as option3, " +
+            " c.RefConnectivityCode as refConnectivityCode, " +
+            " c.PreQuantity as preQuantity, " +
+            " c.IsReceiptDrugPriceRefGenerated as isReceiptDrugPriceRefGenerated, " +
+            " c.RetailQuantity as retailQuantity, " +
+            " c.HandledStatusId as handledStatusId, " +
+            " c.RetailPrice as retailPrice, " +
+            " c.RequestUpdateFromBkgService as requestUpdateFromBkgService, " +
+            " c.ReduceNoteItemIds as reduceNoteItemIds, " +
+            " c.ReduceQuantity as reduceQuantity, " +
+            " c.IsModified as isModified, " +
+            " c.ItemOrder as itemOrder, " +
+            " c.ArchiveDrugId as archiveDrugId, " +
+            " c.ArchiveUnitId as archiveUnitId,  " +
+            " c.RecordStatusID as recordStatusID, " +
+            " c.PreRetailQuantity as preRetailQuantity, " +
+            " c.BatchNumber as batchNumber, " +
+            " c.ExpiredDate as expiredDate, " +
+            " c.ExpirySetAuto as expirySetAuto, " +
+            " c.ReferenceId as referenceId, " +
+            " c.ArchivedId as archivedId, " +
+            " c.StoreId as storeId, " +
+            " c.ConnectivityStatusId as connectivityStatusId, " +
+            " c.ConnectivityResult as connectivityResult, " +
+            " c.UpdatedById as updatedById, " +
+            " c.UpdatedDate as updatedDate, " +
+            " c.CreatedById as createdById, " +
+            " c.CreatedDate as createdDate, " +
+            " c.VAT as vat, " +
+            " c.Reason as reason, " +
+            " c.Solution as solution, " +
+            " c.Notes as notes, " +
+            " c.LockReGenReportData as lockReGenReportData, " +
+            " c.IsProdRef as isProdRef, " +
+            " c.NegativeRevenue as negativeRevenue, " +
+            " c.Revenue as revenue, " +
+            " c.RefPrice as refPrice, " +
+            " c.OutOwnerPriceChild as outOwnerPriceChild, " +
+            " c.Created as created, " +
+            " c.CreatedBy_UserId as createdByUserId, " +
+            " c.Modified as modified, " +
+            " c.ModifiedBy_UserId as modifiedByUserId, " +
+            " d.SoPhieuXuat as soPhieuXuat, " +
+            " d.NgayXuat  as ngayXuat, " +
+            " d.VAT  as vatPhieuXuat " +
+            " FROM PhieuXuatChiTiets c "+
+            " JOIN PhieuXuats d on c.PhieuXuat_MaPhieuXuat = d.id "+
+            " WHERE 1=1 "
+            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR d.NhaThuoc_MaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR d.KhachHang_MaKhachHang = :#{#param.khachHangMaKhachHang})"
+            + " AND (:#{#param.thuocThuocId} IS NULL OR c.Thuoc_ThuocId = :#{#param.thuocThuocId})"
+            + " AND (:#{#param.recordStatusId} IS NULL OR d.RecordStatusID = :#{#param.recordStatusId}) "
+            + " AND (c.RecordStatusID = 0) "
+            + " AND (:#{#param.fromDateCreated} IS NULL OR d.Created >= :#{#param.fromDateCreated}) "
+            + " AND (:#{#param.toDateCreated} IS NULL OR d.Created <= :#{#param.toDateCreated}) "
+            + " ORDER BY c.id desc"
+            , nativeQuery = true)
+    Page<Tuple> searchPageCustom(@Param("param") PhieuXuatChiTietsReq param, Pageable pageable);
 }

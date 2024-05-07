@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -13,26 +12,26 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private String nhaThuocMaNhaThuoc;
     private Long thuocThuocId;
     private Long donViTinhMaDonViTinh;
-    private BigDecimal chietKhau;
-    private BigDecimal giaXuat;
-    private BigDecimal soLuong;
+    private Double chietKhau;
+    private Double giaXuat;
+    private Double soLuong;
     private String option1;
     private String option2;
     private String option3;
     private String refConnectivityCode;
     private String preQuantity;
     private Boolean isReceiptDrugPriceRefGenerated;
-    private Float retailQuantity;
+    private Double retailQuantity;
     private Long handledStatusId;
-    private Float retailPrice;
+    private Double retailPrice;
     private Boolean requestUpdateFromBkgService;
     private String reduceNoteItemIds;
-    private Float reduceQuantity;
+    private Double reduceQuantity;
     private Boolean isModified;
     private Integer itemOrder;
     private Long archiveDrugId;
     private Long archiveUnitId;
-    private Float preRetailQuantity;
+    private Double preRetailQuantity;
     private String batchNumber;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date expiredDate;
@@ -42,17 +41,17 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private Long storeId;
     private Long connectivityStatusId;
     private String connectivityResult;
-    private Integer vat;
+    private Double vat;
     private String reason;
     private String solution;
     private String notes;
     private Boolean lockReGenReportData;
     private Boolean isProdRef;
     private Boolean negativeRevenue;
-    private BigDecimal revenue;
-    private BigDecimal refPrice;
+    private Double revenue;
+    private Double refPrice;
     private String usage;
-    private BigDecimal outOwnerPriceChild;
+    private Double outOwnerPriceChild;
 
     private Long khachHangMaKhachHang;
 }

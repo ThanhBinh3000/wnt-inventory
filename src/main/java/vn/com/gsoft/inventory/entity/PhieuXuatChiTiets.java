@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -26,20 +25,14 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private String nhaThuocMaNhaThuoc;
     @Column(name = "Thuoc_ThuocId")
     private Long thuocThuocId;
-    @Transient
-    private String maThuocText;
-    @Transient
-    private String tenThuocText;
     @Column(name = "DonViTinh_MaDonViTinh")
     private Long donViTinhMaDonViTinh;
-    @Transient
-    private String donViTinhMaDonViTinhText;
     @Column(name = "ChietKhau")
-    private BigDecimal chietKhau;
+    private Double chietKhau;
     @Column(name = "GiaXuat")
-    private BigDecimal giaXuat;
+    private Double giaXuat;
     @Column(name = "SoLuong")
-    private BigDecimal soLuong;
+    private Double soLuong;
     @Column(name = "Option1")
     private String option1;
     @Column(name = "Option2")
@@ -53,17 +46,17 @@ public class PhieuXuatChiTiets extends BaseEntity{
     @Column(name = "IsReceiptDrugPriceRefGenerated")
     private Boolean isReceiptDrugPriceRefGenerated;
     @Column(name = "RetailQuantity")
-    private Float retailQuantity;
+    private Double retailQuantity;
     @Column(name = "HandledStatusId")
     private Long handledStatusId;
     @Column(name = "RetailPrice")
-    private Float retailPrice;
+    private Double retailPrice;
     @Column(name = "RequestUpdateFromBkgService")
     private Boolean requestUpdateFromBkgService;
     @Column(name = "ReduceNoteItemIds")
     private String reduceNoteItemIds;
     @Column(name = "ReduceQuantity")
-    private Float reduceQuantity;
+    private Double reduceQuantity;
     @Column(name = "IsModified")
     private Boolean isModified;
     @Column(name = "ItemOrder")
@@ -73,7 +66,7 @@ public class PhieuXuatChiTiets extends BaseEntity{
     @Column(name = "ArchiveUnitId")
     private Long archiveUnitId;
     @Column(name = "PreRetailQuantity")
-    private Float preRetailQuantity;
+    private Double preRetailQuantity;
     @Column(name = "BatchNumber")
     private String batchNumber;
     @Column(name = "ExpiredDate")
@@ -91,7 +84,7 @@ public class PhieuXuatChiTiets extends BaseEntity{
     @Column(name = "ConnectivityResult")
     private String connectivityResult;
     @Column(name = "VAT")
-    private Integer vat;
+    private Double vat;
     @Column(name = "Reason")
     private String reason;
     @Column(name = "Solution")
@@ -105,13 +98,13 @@ public class PhieuXuatChiTiets extends BaseEntity{
     @Column(name = "NegativeRevenue")
     private Boolean negativeRevenue;
     @Column(name = "Revenue")
-    private BigDecimal revenue;
+    private Double revenue;
     @Column(name = "RefPrice")
-    private BigDecimal refPrice;
+    private Double refPrice;
     @Column(name = "Usage")
     private String usage;
     @Column(name = "OutOwnerPriceChild")
-    private BigDecimal outOwnerPriceChild;
+    private Double outOwnerPriceChild;
 
     @Transient
     private String imageThumbData;
@@ -119,5 +112,17 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private String imagePreviewData;
     @Transient
     private Thuocs thuocs;
+    @Transient
+    private String donViTinhMaDonViTinhText;
+    @Transient
+    private String maThuocText;
+    @Transient
+    private String tenThuocText;
+    @Transient
+    private Long soPhieuXuat;
+    @Transient
+    private Date ngayXuat;
+    @Transient
+    private Double vatPhieuXuat;
 }
 

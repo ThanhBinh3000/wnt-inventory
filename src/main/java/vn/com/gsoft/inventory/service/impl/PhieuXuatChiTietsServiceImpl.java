@@ -18,6 +18,7 @@ import vn.com.gsoft.inventory.repository.InventoryRepository;
 import vn.com.gsoft.inventory.repository.PhieuXuatChiTietsRepository;
 import vn.com.gsoft.inventory.repository.ThuocsRepository;
 import vn.com.gsoft.inventory.service.PhieuXuatChiTietsService;
+import vn.com.gsoft.inventory.util.system.DataUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
                         Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                         if (byId.isPresent()) {
                             byId.get().setFactor(1);
-                            byId.get().setGiaBan(ct.getGiaXuat());
+                            byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()));
                             dviTinh.add(byId.get());
                             thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                         }
@@ -72,7 +73,57 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
                         Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                         if (byId.isPresent()) {
                             byId.get().setFactor(thuocs.getHeSo());
-                            byId.get().setGiaBan(ct.getGiaXuat().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                            byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()).multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                            dviTinh.add(byId.get());
+                            thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
+                        }
+                    }
+                    thuocs.setListDonViTinhs(dviTinh);
+                    InventoryReq inventoryReq = new InventoryReq();
+                    inventoryReq.setDrugID(thuocs.getId());
+                    inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
+                    inventoryReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+                    Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
+                    inventory.ifPresent(thuocs::setInventory);
+                    ct.setThuocs(thuocs);
+                }
+            }
+            if (ct.getDonViTinhMaDonViTinh() != null && ct.getDonViTinhMaDonViTinh() > 0) {
+                ct.setDonViTinhMaDonViTinhText(donViTinhsRepository.findById(ct.getDonViTinhMaDonViTinh()).get().getTenDonViTinh());
+            }
+        }
+        return xuatChiTiets;
+    }
+
+    @Override
+    public Page<PhieuXuatChiTiets> searchPageCustom(PhieuXuatChiTietsReq req) throws Exception {
+        Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
+        if(req.getRecordStatusId() ==null){
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
+        Page<PhieuXuatChiTiets> xuatChiTiets = DataUtils.convertPage(hdrRepo.searchPageCustom(req, pageable), PhieuXuatChiTiets.class) ;
+        for(PhieuXuatChiTiets ct: xuatChiTiets.getContent()){
+            if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
+                Optional<Thuocs> thuocsOpt = thuocsRepository.findById(ct.getThuocThuocId());
+                if (thuocsOpt.isPresent()) {
+                    Thuocs thuocs = thuocsOpt.get();
+                    ct.setMaThuocText(thuocs.getMaThuoc());
+                    ct.setTenThuocText(thuocs.getTenThuoc());
+                    List<DonViTinhs> dviTinh = new ArrayList<>();
+                    if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                        if (byId.isPresent()) {
+                            byId.get().setFactor(1);
+                            byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()));
+                            dviTinh.add(byId.get());
+                            thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
+                        }
+                    }
+                    if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
+                        if (byId.isPresent()) {
+                            byId.get().setFactor(thuocs.getHeSo());
+                            byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()).multiply(BigDecimal.valueOf(thuocs.getHeSo())));
                             dviTinh.add(byId.get());
                             thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
                         }

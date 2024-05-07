@@ -478,7 +478,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
-                                byId.get().setGiaBan(ct.getGiaXuat());
+                                byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()));
                                 dviTinh.add(byId.get());
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
@@ -487,7 +487,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
-                                byId.get().setGiaBan(ct.getGiaXuat().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                                byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()).multiply(BigDecimal.valueOf(thuocs.getHeSo())));
                                 dviTinh.add(byId.get());
                                 thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
                             }
@@ -552,7 +552,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
-                                byId.get().setGiaBan(ct.getGiaXuat());
+                                byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()));
                                 dviTinh.add(byId.get());
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
@@ -561,7 +561,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
-                                byId.get().setGiaBan(ct.getGiaXuat().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                                byId.get().setGiaBan(BigDecimal.valueOf(ct.getGiaXuat()).multiply(BigDecimal.valueOf(thuocs.getHeSo())));
                                 dviTinh.add(byId.get());
                                 thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
                             }

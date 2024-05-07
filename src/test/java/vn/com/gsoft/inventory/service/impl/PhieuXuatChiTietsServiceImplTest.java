@@ -47,4 +47,16 @@ class PhieuXuatChiTietsServiceImplTest {
         Page<PhieuXuatChiTiets> sampleNotes = phieuXuatChiTietsService.searchPage(noteMedicalsReq);
         assert sampleNotes != null;
     }
+
+    @Test
+    void searchPageCustom() throws Exception {
+        PhieuXuatChiTietsReq noteMedicalsReq = new PhieuXuatChiTietsReq();
+        PaggingReq paggingReq = new PaggingReq();
+        paggingReq.setPage(0);
+        paggingReq.setLimit(10);
+        noteMedicalsReq.setPaggingReq(paggingReq);
+        noteMedicalsReq.setNhaThuocMaNhaThuoc("0010");
+        Page<PhieuXuatChiTiets> sampleNotes = phieuXuatChiTietsService.searchPageCustom(noteMedicalsReq);
+        assert sampleNotes != null;
+    }
 }
