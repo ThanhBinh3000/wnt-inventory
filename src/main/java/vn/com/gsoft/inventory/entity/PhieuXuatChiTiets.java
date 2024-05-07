@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -124,5 +125,7 @@ public class PhieuXuatChiTiets extends BaseEntity{
     private Date ngayXuat;
     @Transient
     private Double vatPhieuXuat;
+    @Transient
+    private Double debtPaymentAmount;
 }
 
