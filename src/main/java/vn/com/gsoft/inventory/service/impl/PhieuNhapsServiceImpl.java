@@ -229,6 +229,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
         req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         req.setIsModified(false);
         req.setVat(0);
@@ -265,6 +266,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         }
         BeanUtils.copyProperties(req, hdr, "id", "created", "createdByUserId");
         hdr.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        hdr.setStoreId(userInfo.getNhaThuoc().getId());
         hdr.setModified(new Date());
         hdr.setModifiedByUserId(getLoggedUser().getId());
         hdr.setRecordStatusId(RecordStatusContains.ACTIVE);
@@ -282,6 +284,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         // save chi tiết
         dtlRepo.deleteAllByPhieuNhapMaPhieuNhap(idHdr);
         for(PhieuNhapChiTiets chiTiet : req.getChiTiets()){
+            chiTiet.setNhaThuocMaNhaThuoc(req.getNhaThuocMaNhaThuoc());
+            chiTiet.setStoreId(req.getStoreId());
             chiTiet.setChietKhau(BigDecimal.valueOf(0));
             chiTiet.setPhieuNhapMaPhieuNhap(idHdr);
             chiTiet.setIsModified(false);

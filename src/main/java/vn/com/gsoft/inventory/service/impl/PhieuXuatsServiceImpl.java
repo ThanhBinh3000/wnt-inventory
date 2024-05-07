@@ -355,6 +355,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         e = hdrRepo.save(e);
         // save chi tiết
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
+            chiTiet.setNhaThuocMaNhaThuoc(e.getNhaThuocMaNhaThuoc());
+            chiTiet.setStoreId(e.getStoreId());
             chiTiet.setPhieuXuatMaPhieuXuat(e.getId());
             chiTiet.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
@@ -414,6 +416,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         // save chi tiết
         this.phieuXuatChiTietsRepository.deleteByPhieuXuatMaPhieuXuat(e.getId());
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
+            chiTiet.setNhaThuocMaNhaThuoc(e.getNhaThuocMaNhaThuoc());
+            chiTiet.setStoreId(e.getStoreId());
             chiTiet.setPhieuXuatMaPhieuXuat(e.getId());
             chiTiet.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
