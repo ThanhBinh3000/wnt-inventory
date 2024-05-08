@@ -417,6 +417,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         e = hdrRepo.save(e);
         // save chi tiết
         this.phieuXuatChiTietsRepository.deleteByPhieuXuatMaPhieuXuat(e.getId());
+        e.setChiTiets(req.getChiTiets());
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             chiTiet.setNhaThuocMaNhaThuoc(e.getNhaThuocMaNhaThuoc());
             chiTiet.setStoreId(e.getStoreId());
