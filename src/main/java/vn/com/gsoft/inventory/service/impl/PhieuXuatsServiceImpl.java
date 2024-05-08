@@ -445,7 +445,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             if (optional.get().getRecordStatusId() != RecordStatusContains.ACTIVE) {
                 throw new Exception("Không tìm thấy dữ liệu.");
             }
-            List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuat(optional.get().getId());
+            List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(optional.get().getId(), RecordStatusContains.ACTIVE);
             phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
             if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {
@@ -522,7 +522,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (optional.isEmpty()) {
             throw new Exception("Không tìm thấy dữ liệu.");
         } else {
-            List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuat(optional.get().getId());
+            List<PhieuXuatChiTiets> phieuXuatMaPhieuXuat = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(optional.get().getId(), RecordStatusContains.ACTIVE);
             phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
             if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {

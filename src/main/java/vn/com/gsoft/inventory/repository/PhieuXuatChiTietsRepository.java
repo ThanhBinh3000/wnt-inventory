@@ -107,7 +107,7 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
     @Query("UPDATE PhieuXuatChiTiets p SET p.recordStatusId = 1 WHERE p.phieuXuatMaPhieuXuat = ?1")
     void deleteByPhieuXuatMaPhieuXuat(Long id);
 
-    List<PhieuXuatChiTiets> findByPhieuXuatMaPhieuXuat(Long phieuXuatMaPhieuXuat);
+    List<PhieuXuatChiTiets> findByPhieuXuatMaPhieuXuatAndRecordStatusId(Long phieuXuatMaPhieuXuat,Long status);
 
     @Query(value = "SELECT " +
             " c.id, " +
