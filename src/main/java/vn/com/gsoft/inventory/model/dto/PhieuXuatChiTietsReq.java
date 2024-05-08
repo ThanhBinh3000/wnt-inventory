@@ -54,4 +54,9 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private Double outOwnerPriceChild;
 
     private Long khachHangMaKhachHang;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDateNgayXuat;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date toDateNgayXuat;
 }

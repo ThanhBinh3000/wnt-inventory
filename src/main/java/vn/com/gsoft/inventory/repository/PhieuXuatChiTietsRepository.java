@@ -174,8 +174,8 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             + " AND (:#{#param.thuocThuocId} IS NULL OR c.Thuoc_ThuocId = :#{#param.thuocThuocId})"
             + " AND (:#{#param.recordStatusId} IS NULL OR d.RecordStatusID = :#{#param.recordStatusId}) "
             + " AND (c.RecordStatusID = 0) "
-            + " AND (:#{#param.fromDateCreated} IS NULL OR d.Created >= :#{#param.fromDateCreated}) "
-            + " AND (:#{#param.toDateCreated} IS NULL OR d.Created <= :#{#param.toDateCreated}) "
+            + " AND (:#{#param.fromDateNgayXuat} IS NULL OR d.NgayXuat >= :#{#param.fromDateNgayXuat}) "
+            + " AND (:#{#param.toDateNgayXuat} IS NULL OR d.NgayXuat <= :#{#param.toDateNgayXuat}) "
             + " ORDER BY c.id desc"
             , nativeQuery = true)
     Page<Tuple> searchPageCustom(@Param("param") PhieuXuatChiTietsReq param, Pageable pageable);
