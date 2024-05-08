@@ -408,7 +408,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         }
 
         PhieuXuats e = new PhieuXuats();
-        BeanUtils.copyProperties(req, e, "id", "created", "createdByUserId");
+        BeanUtils.copyProperties(req, e);
+        e.setCreated(optional.get().getCreated());
+        e.setCreatedByUserId(optional.get().getCreatedByUserId());
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         e.setModified(new Date());
         e.setModifiedByUserId(getLoggedUser().getId());
