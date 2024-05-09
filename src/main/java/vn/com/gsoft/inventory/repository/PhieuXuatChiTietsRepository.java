@@ -173,7 +173,7 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR d.KhachHang_MaKhachHang = :#{#param.khachHangMaKhachHang})"
             + " AND (:#{#param.thuocThuocId} IS NULL OR c.Thuoc_ThuocId = :#{#param.thuocThuocId})"
             + " AND (:#{#param.recordStatusId} IS NULL OR d.RecordStatusID = :#{#param.recordStatusId}) "
-            + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR d.nhaCungCapMaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
+            + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR d.NhaCungCap_MaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
             + " AND (c.RecordStatusID = 0) "
             + " AND (:#{#param.fromDateNgayXuat} IS NULL OR d.NgayXuat >= :#{#param.fromDateNgayXuat}) "
             + " AND (:#{#param.toDateNgayXuat} IS NULL OR d.NgayXuat <= :#{#param.toDateNgayXuat}) "
