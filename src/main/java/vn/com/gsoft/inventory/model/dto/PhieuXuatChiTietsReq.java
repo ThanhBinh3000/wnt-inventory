@@ -55,6 +55,8 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
 
     private Long khachHangMaKhachHang;
 
+    private Long nhaCungCapMaNhaCungCap;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date fromDateNgayXuat;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
