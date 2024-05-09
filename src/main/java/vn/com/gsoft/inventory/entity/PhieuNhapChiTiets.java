@@ -49,27 +49,27 @@ public class PhieuNhapChiTiets extends BaseEntity {
     @Column(name = "HanDung")
     private Date hanDung;
     @Column(name = "RemainRefQuantity")
-    private Float remainRefQuantity;
+    private Double remainRefQuantity;
     @Column(name = "RetailQuantity")
-    private Float retailQuantity;
+    private Double retailQuantity;
     @Column(name = "PreRetailQuantity")
-    private Float preRetailQuantity;
+    private Double preRetailQuantity;
     @Column(name = "HandledStatusId")
     private Long handledStatusId;
     @Column(name = "RetailPrice")
-    private Float retailPrice;
+    private Double retailPrice;
     @Column(name = "RequestUpdateFromBkgService")
     private Boolean requestUpdateFromBkgService;
     @Column(name = "ReduceNoteItemIds")
     private String reduceNoteItemIds;
     @Column(name = "ReduceQuantity")
-    private Float reduceQuantity;
+    private Double reduceQuantity;
     @Column(name = "IsModified")
     private Boolean isModified;
     @Column(name = "GiaBanLe")
     private BigDecimal giaBanLe;
     @Column(name = "RetailOutPrice")
-    private Float retailOutPrice;
+    private Double retailOutPrice;
     @Column(name = "ItemOrder")
     private Integer itemOrder;
     @Column(name = "RpMetadataHash")
@@ -91,7 +91,7 @@ public class PhieuNhapChiTiets extends BaseEntity {
     @Column(name = "ConnectivityResult")
     private String connectivityResult;
     @Column(name = "VAT")
-    private Integer vat;
+    private Double vat;
     @Column(name = "LockReGenReportData")
     private Boolean lockReGenReportData;
     @Column(name = "Reason")
@@ -114,6 +114,21 @@ public class PhieuNhapChiTiets extends BaseEntity {
 
     @Transient
     private String tenDonViTinh;
+
+    @Transient
+    private String donViTinhMaDonViTinhText;
+    @Transient
+    private String maThuocText;
+    @Transient
+    private String tenThuocText;
+    @Transient
+    private Long soPhieuNhap;
+    @Transient
+    private Date ngayNhap;
+    @Transient
+    private Double vatPhieuNhap;
+    @Transient
+    private Double debtPaymentAmount;
 
 }
 

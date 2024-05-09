@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.repository;
 
+import jakarta.persistence.Tuple;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.inventory.entity.PhieuNhapChiTiets;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapChiTietsReq;
+import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
 
 import java.util.List;
 
@@ -106,5 +108,68 @@ public interface  PhieuNhapChiTietsRepository extends BaseRepository<PhieuNhapCh
   @Modifying
   @Query("UPDATE PhieuNhapChiTiets p SET p.recordStatusId = 1 WHERE p.phieuNhapMaPhieuNhap = ?1")
   void deleteAllByPhieuNhapMaPhieuNhap(Long phieuNhapMaPhieuNhap);
+
+  @Query(value = "SELECT " +
+          " c.id, " +
+          " c.phieuNhap_MaPhieuNhap as phieuNhapMaPhieunNhap, " +
+          " c.NhaThuoc_MaNhaThuoc as nhaThuocMaNhaThuoc, " +
+          " c.Thuoc_ThuocId as thuocThuocId, " +
+          " c.DonViTinh_MaDonViTinh as donViTinhMaDonViTinh, " +
+          " c.ChietKhau as chietKhau, " +
+          " c.GiaNhap as giaNhap, " +
+          " c.SoLuong as soLuong, " +
+          " c.Option1 as option1, " +
+          " c.Option2 as option2, " +
+          " c.Option3 as option3, " +
+          " c.SoLo as soLo, " +
+          " c.HanDung as hanDung, " +
+          " c.RemainRefQuantity as remainRefQuantity, " +
+          " c.RetailQuantity as retailQuantity, " +
+          " c.PreRetailQuantity as preRetailQuantity, " +
+          " c.HandledStatusId as handledStatusId, " +
+          " c.RetailPrice as retailPrice, " +
+          " c.RequestUpdateFromBkgService as requestUpdateFromBkgService, " +
+          " c.ReduceNoteItemIds as reduceNoteItemIds, " +
+          " c.ReduceQuantity as reduceQuantity, " +
+          " c.IsModified as isModified, " +
+          " c.GiaBanLe as GiaBanLe, " +
+          " c.RetailOutPrice as retailOutPrice, " +
+          " c.ItemOrder as itemOrder, " +
+          " c.RpMetadataHash as rpMetadataHash, " +
+          " c.ArchiveDrugId as archiveDrugId, " +
+          " c.ArchiveUnitId as archiveUnitId, " +
+          " c.ExpirySetAuto as expirySetAuto, " +
+          " c.ReferenceId as referenceId, " +
+          " c.ArchivedId as archivedId, " +
+          " c.StoreId as storeId, " +
+          " c.ConnectivityStatusId as connectivityStatusId, " +
+          " c.ConnectivityResult as connectivityResult, " +
+          " c.VAT as vat, " +
+          " c.LockReGenReportData as lockReGenReportData, " +
+          " c.Reason as reason, " +
+          " c.Solution as solution, " +
+          " c.Notes as notes, " +
+          " c.IsProdRef as isProdRef, " +
+          " c.RefPrice as refPrice, " +
+          " c.Decscription as decscription, " +
+          " c.StorageConditions as storageConditions, " +
+          " d.SoPhieuNhap as SoPhieuNhap, " +
+          " d.ngayNhap  as ngayNhap, " +
+          " d.VAT  as vatPhieuNhap, " +
+          " d.DebtPaymentAmount  as debtPaymentAmount " +
+          " FROM PhieuNhapChiTiets c "+
+          " JOIN PhieuNhaps d on c.phieuNhap_MaPhieuNhap = d.id "+
+          " WHERE 1=1 "
+          + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR d.NhaThuoc_MaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+          + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR d.KhachHang_MaKhachHang = :#{#param.khachHangMaKhachHang})"
+          + " AND (:#{#param.thuocThuocId} IS NULL OR c.Thuoc_ThuocId = :#{#param.thuocThuocId})"
+          + " AND (:#{#param.recordStatusId} IS NULL OR d.RecordStatusID = :#{#param.recordStatusId}) "
+          + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR d.NhaCungCap_MaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
+          + " AND (c.RecordStatusId = 0) "
+          + " AND (:#{#param.fromDateNgayNhap} IS NULL OR d.NgayNhap >= :#{#param.fromDateNgayNhap}) "
+          + " AND (:#{#param.toDateNgayNhap} IS NULL OR d.NgayNhap <= :#{#param.toDateNgayNhap}) "
+          + " ORDER BY d.NgayNhap desc"
+          , nativeQuery = true)
+  Page<Tuple> searchPageCustom(@Param("param") PhieuNhapChiTietsReq param, Pageable pageable);
 
 }

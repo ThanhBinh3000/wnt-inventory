@@ -54,4 +54,13 @@ public class PhieuNhapChiTietsReq  extends BaseRequest {
     private BigDecimal refPrice;
     private String decscription;
     private String storageConditions;
+
+    private Long khachHangMaKhachHang;
+
+    private Long nhaCungCapMaNhaCungCap;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDateNgayNhap;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date toDateNgayNhap;
 }

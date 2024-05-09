@@ -25,7 +25,7 @@ public class PhieuNhapChiTietsController {
   @PostMapping(value = PathContains.URL_SEARCH_PAGE, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<BaseResponse> colection(@RequestBody PhieuNhapChiTietsReq objReq) throws Exception {
-    return ResponseEntity.ok(ResponseUtils.ok(service.searchPage(objReq)));
+    return ResponseEntity.ok(ResponseUtils.ok(service.searchPageCustom(objReq)));
   }
 
   @PostMapping(value = PathContains.URL_SEARCH_LIST, produces = MediaType.APPLICATION_JSON_VALUE)
