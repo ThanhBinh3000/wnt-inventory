@@ -2,6 +2,7 @@ package vn.com.gsoft.inventory.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,9 @@ public class BaseServiceImpl<E extends BaseEntity,R extends BaseRequest, PK exte
     public BaseServiceImpl(BaseRepository repository) {
         this.repository = repository;
     }
+
+    @Value("${path.base-report-folder}")
+    public String baseReportFolder;
 
     public Profile getLoggedUser() throws Exception {
         try {

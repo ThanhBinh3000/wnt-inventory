@@ -3,9 +3,11 @@ package vn.com.gsoft.inventory.service;
 
 import jakarta.transaction.Transactional;
 import vn.com.gsoft.inventory.entity.PhieuXuats;
+import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq, Long> {
@@ -28,4 +30,5 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     @Transactional
     PhieuXuats cancel(Long id) throws Exception;
     Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo);
+    ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception;
 }
