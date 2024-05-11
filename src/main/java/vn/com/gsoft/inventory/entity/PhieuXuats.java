@@ -194,6 +194,8 @@ public class PhieuXuats extends BaseEntity {
     @Transient
     private String bacSyMaBacSyText;
     @Transient
+    private String maLoaiXuatNhapText;
+    @Transient
     private List<PhieuXuatChiTiets> chiTiets;
 }
 

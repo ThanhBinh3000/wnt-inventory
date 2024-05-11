@@ -52,6 +52,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private InventoryRepository inventoryRepository;
     private NhaThuocsRepository nhaThuocsRepository;
     private KafkaProducer kafkaProducer;
+    private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
 
@@ -69,6 +70,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  PhieuThuChisRepository phieuThuChisRepository,
                                  BacSiesRepository bacSiesRepository,
                                  PhieuNhapsService phieuNhapsService,
+                                 LoaiXuatNhapsRepository loaiXuatNhapsRepository,
                                  KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -86,6 +88,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.inventoryRepository = inventoryRepository;
         this.phieuNhapsRepository = phieuNhapsRepository;
         this.phieuThuChisRepository = phieuThuChisRepository;
+        this.loaiXuatNhapsRepository = loaiXuatNhapsRepository;
         this.bacSiesRepository = bacSiesRepository;
     }
 
@@ -100,6 +103,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         }
         Page<PhieuXuats> phieuXuats = hdrRepo.searchPage(req, pageable);
         for (PhieuXuats px : phieuXuats.getContent()) {
+            if (px.getMaLoaiXuatNhap() != null && px.getMaLoaiXuatNhap() > 0) {
+                px.setMaLoaiXuatNhapText(this.loaiXuatNhapsRepository.findById(px.getMaLoaiXuatNhap()).get().getTenLoaiXuatNhap());
+            }
             if (px.getKhachHangMaKhachHang() != null && px.getKhachHangMaKhachHang() > 0) {
                 px.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(px.getKhachHangMaKhachHang()).get().getTenKhachHang());
             }
