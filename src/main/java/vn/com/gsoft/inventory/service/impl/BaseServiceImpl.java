@@ -28,8 +28,6 @@ public class BaseServiceImpl<E extends BaseEntity,R extends BaseRequest, PK exte
         this.repository = repository;
     }
 
-    @Value("${path.base-report-folder}")
-    public String baseReportFolder;
 
     public Profile getLoggedUser() throws Exception {
         try {

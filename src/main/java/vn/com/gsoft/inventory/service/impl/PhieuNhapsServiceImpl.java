@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,11 +26,14 @@ import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 
 @Service
@@ -599,8 +603,21 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
         try {
-            String templatePath = "phieuNhaps/phieu_nhap_hang.docx";
-            FileInputStream templateInputStream = new FileInputStream(baseReportFolder + templatePath);
+            String templatePath = "/template/phieuNhaps/phieu_nhap_hang.docx";
+            InputStream templateInputStream = null;
+            File file = new ClassPathResource(templatePath).getFile();
+            if (file.exists()) {
+                templateInputStream = new FileInputStream(file);
+            } else {
+                try {
+                    templateInputStream = new ClassPathResource(templatePath).getInputStream();
+                } catch (Exception ex) {
+                    Logger.getLogger("File").info(ex.getMessage());
+                }
+            }
+            if (templateInputStream == null) {
+                throw new Exception("Không tìm file template.");
+            }
             PhieuNhaps phieuNhaps = this.detail(DataUtils.safeToLong(hashMap.get("id")));
             List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
             allByPhieuNhapMaPhieuNhap.forEach(item -> {

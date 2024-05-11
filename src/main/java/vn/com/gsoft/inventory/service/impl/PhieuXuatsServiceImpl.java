@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +27,14 @@ import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
@@ -109,7 +113,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             if (px.getCreatedByUserId() != null && px.getCreatedByUserId() > 0) {
                 px.setCreatedByUserText(this.userProfileRepository.findById(px.getCreatedByUserId()).get().getTenDayDu());
             }
-            if(px.getTargetStoreId() != null && px.getTargetStoreId()>0){
+            if (px.getTargetStoreId() != null && px.getTargetStoreId() > 0) {
                 Optional<NhaThuocs> byId = nhaThuocsRepository.findById(px.getTargetStoreId());
                 byId.ifPresent(nhaThuocs -> px.setTargetStoreText(nhaThuocs.getTenNhaThuoc()));
             }
@@ -683,15 +687,28 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             String loai = DataUtils.safeToString(hashMap.get("loai"), "");
             String templatePath = null;
             if (loai.equals("58mm")) {
-                 templatePath = "phieuXuats/phieu_khach_le_58mm.docx";
+                templatePath = "template/phieuXuats/phieu_khach_le_58mm.docx";
             }
-            if (loai.equals("80mm")){
-                 templatePath = "phieuXuats/phieu_khach_le_80mm.docx";
+            if (loai.equals("80mm")) {
+                templatePath = "template/phieuXuats/phieu_khach_le_80mm.docx";
             }
-            FileInputStream templateInputStream = new FileInputStream(baseReportFolder + templatePath);
+            InputStream templateInputStream = null;
+            File file = new ClassPathResource(templatePath).getFile();
+            if (file.exists()) {
+                templateInputStream = new FileInputStream(file);
+            } else {
+                try {
+                    templateInputStream = new ClassPathResource(templatePath).getInputStream();
+                } catch (Exception ex) {
+                    Logger.getLogger("File").info(ex.getMessage());
+                }
+            }
+            if (templateInputStream == null) {
+                throw new Exception("Không tìm file template.");
+            }
             PhieuXuats phieuXuats = this.detail(DataUtils.safeToLong(hashMap.get("id")));
             return docxToPdfConverter.convertDocxToPdf(templateInputStream, phieuXuats);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
