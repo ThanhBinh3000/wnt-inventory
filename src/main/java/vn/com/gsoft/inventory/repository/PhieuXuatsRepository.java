@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXuatsReq, Long> {
     @Query("SELECT c FROM PhieuXuats c " +
-            " WHERE (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            " WHERE c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc}"
             + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
@@ -76,7 +76,7 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
 
 
     @Query("SELECT c FROM PhieuXuats c " +
-            "WHERE  (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            "WHERE  c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc}"
             + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
