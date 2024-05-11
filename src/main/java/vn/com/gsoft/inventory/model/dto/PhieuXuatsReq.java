@@ -71,7 +71,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private String doctorComments;
     private String keyNewEInvoice;
     private String keyOldEInvoice;
-    private Long eInvoiceStatusID;
+    private Long einvoiceStatusID;
     private Long signEInvoiceStatusID;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date connEInvoiceDateTime;
@@ -83,14 +83,14 @@ public class PhieuXuatsReq extends BaseRequest {
     private Date replacedEInvoiceDateTime;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date editedEInvoiceDateTime;
-    private String kHHDon;
-    private String kHMSHDon;
-    private String sHDon;
+    private String khhDon;
+    private String khmshDon;
+    private String shDon;
     private Long pickUpOrderId;
-    private String eSampleNoteCode;
+    private String esampleNoteCode;
     private String linkConfirm;
     private String taxAuthorityCode;
-    private String eInvoiveResult;
+    private String einvoiveResult;
     private Boolean isRefSampleNote;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date nextPurchaseDate;
@@ -99,7 +99,7 @@ public class PhieuXuatsReq extends BaseRequest {
     private Long idPaymentQR;
     private Long targetManagementId;
 
-    private Boolean IsConnectivity;
+    private Boolean isConnectivity;
 
     private List<PhieuXuatChiTiets> chiTiets;
 
