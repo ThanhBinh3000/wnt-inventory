@@ -486,7 +486,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
