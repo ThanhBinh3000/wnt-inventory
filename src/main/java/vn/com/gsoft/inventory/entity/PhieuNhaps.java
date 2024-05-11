@@ -144,6 +144,9 @@ public class PhieuNhaps extends BaseEntity {
     @Transient
     private String targetStoreText;
 
+    @Transient
+    private String loaiXuatNhapMaLoaiXuatNhapText;
+
     //    priview
     @Transient
     private String diaChi;

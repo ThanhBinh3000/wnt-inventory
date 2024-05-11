@@ -60,6 +60,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private InventoryRepository inventoryRepository;
     @Autowired
     private NhaThuocsRepository nhaThuocsRepository;
+    @Autowired
+    private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
     @Autowired
@@ -86,6 +88,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         }
         Page<PhieuNhaps> phieuNhaps = hdrRepo.searchPage(req, pageable);
         phieuNhaps.getContent().forEach(item -> {
+            if (item.getLoaiXuatNhapMaLoaiXuatNhap() != null && item.getLoaiXuatNhapMaLoaiXuatNhap() > 0) {
+                Optional<LoaiXuatNhaps> byId = loaiXuatNhapsRepository.findById(item.getLoaiXuatNhapMaLoaiXuatNhap());
+                byId.ifPresent(loaiXuatNhaps -> item.setLoaiXuatNhapMaLoaiXuatNhapText(loaiXuatNhaps.getTenLoaiXuatNhap()));
+            }
             if (item.getNhaCungCapMaNhaCungCap() != null && item.getNhaCungCapMaNhaCungCap() > 0) {
                 Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(item.getNhaCungCapMaNhaCungCap());
                 byId.ifPresent(nhaCungCaps -> item.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
