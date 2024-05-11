@@ -75,8 +75,6 @@ public class DonThuocServiceImpl implements DonThuocService {
             throw e;
         }
 
-        note.setNgayGioKeDon(note.getNgayGioKeDon() == null ? null : new SimpleDateFormat("dd/MM/yyyy hh: mm: ss").format(note.getNgayGioKeDon()));
-
         List<String> codes = note.getThongTinDonThuoc().stream()
                 .filter(x -> x.getMaThuoc() != null && x.getMaThuoc().contains("DQG"))
                 .map(ThongTinDonThuocRes::getMaThuoc)
