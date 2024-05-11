@@ -14,14 +14,13 @@ import java.util.List;
 @Repository
 public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXuatsReq, Long> {
     @Query("SELECT c FROM PhieuXuats c " +
-            "WHERE 1=1 "
-            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            " WHERE (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
             + " AND (:#{#param.dienGiai} IS NULL OR lower(c.dienGiai) LIKE lower(concat('%',CONCAT(:#{#param.dienGiai},'%'))))"
             + " AND (:#{#param.tongTien} IS NULL OR c.tongTien = :#{#param.tongTien}) "
             + " AND (:#{#param.daTra} IS NULL OR c.daTra = :#{#param.daTra}) "
-            + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR c.khachHangMaKhachHang = :#{#param.khachHangMaKhachHang}) "
             + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR c.nhaCungCapMaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
             + " AND (:#{#param.bacSyMaBacSy} IS NULL OR c.bacSyMaBacSy = :#{#param.bacSyMaBacSy}) "
@@ -77,14 +76,13 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
 
 
     @Query("SELECT c FROM PhieuXuats c " +
-            "WHERE 1=1 "
-            + " AND (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            "WHERE  (:#{#param.nhaThuocMaNhaThuoc} IS NULL OR c.nhaThuocMaNhaThuoc = :#{#param.nhaThuocMaNhaThuoc})"
+            + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
             + " AND (:#{#param.soPhieuXuat} IS NULL OR c.soPhieuXuat = :#{#param.soPhieuXuat}) "
             + " AND (:#{#param.dienGiai} IS NULL OR lower(c.dienGiai) LIKE lower(concat('%',CONCAT(:#{#param.dienGiai},'%'))))"
             + " AND (:#{#param.tongTien} IS NULL OR c.tongTien = :#{#param.tongTien}) "
             + " AND (:#{#param.daTra} IS NULL OR c.daTra = :#{#param.daTra}) "
-            + " AND (:#{#param.maLoaiXuatNhap} IS NULL OR c.maLoaiXuatNhap = :#{#param.maLoaiXuatNhap}) "
             + " AND (:#{#param.khachHangMaKhachHang} IS NULL OR c.khachHangMaKhachHang = :#{#param.khachHangMaKhachHang}) "
             + " AND (:#{#param.nhaCungCapMaNhaCungCap} IS NULL OR c.nhaCungCapMaNhaCungCap = :#{#param.nhaCungCapMaNhaCungCap}) "
             + " AND (:#{#param.bacSyMaBacSy} IS NULL OR c.bacSyMaBacSy = :#{#param.bacSyMaBacSy}) "
