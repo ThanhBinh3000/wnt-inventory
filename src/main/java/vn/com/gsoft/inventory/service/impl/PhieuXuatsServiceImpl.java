@@ -486,7 +486,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
@@ -495,7 +495,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
@@ -560,7 +560,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
@@ -569,7 +569,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
