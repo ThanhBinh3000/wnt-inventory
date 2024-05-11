@@ -4,9 +4,10 @@ package vn.com.gsoft.inventory.service;
 import jakarta.transaction.Transactional;
 import vn.com.gsoft.inventory.entity.PhieuNhaps;
 import vn.com.gsoft.inventory.entity.PhieuXuats;
+import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 
-import java.util.Collection;
+import java.util.HashMap;
 
 public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq, Long> {
 
@@ -28,4 +29,5 @@ public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq
     PhieuNhaps medicineSync(Long id);
     @Transactional
     PhieuNhaps resetSync(Long id) throws Exception;
+    ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception;
 }

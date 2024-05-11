@@ -14,6 +14,8 @@ import vn.com.gsoft.inventory.model.system.BaseResponse;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
 import vn.com.gsoft.inventory.util.system.ResponseUtils;
 
+import java.util.HashMap;
+
 
 @Slf4j
 @RestController
@@ -131,6 +133,12 @@ public class PhieuXuatsController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> getTotalDebtAmountCustomer(@Valid @RequestBody PhieuXuatsReq idSearchReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.getTotalDebtAmountCustomer(idSearchReq.getNhaThuocMaNhaThuoc(), idSearchReq.getKhachHangMaKhachHang(), idSearchReq.getNgayTinhNo())));
+    }
+
+    @PostMapping(value = PathContains.URL_PREVIEW, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> preview(@RequestBody HashMap<String, Object> body) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.preview(body)));
     }
 
 }

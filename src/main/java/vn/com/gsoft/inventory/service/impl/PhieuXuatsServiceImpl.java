@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.inventory.common.DocxToPdfConverter;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
@@ -23,7 +24,9 @@ import vn.com.gsoft.inventory.service.ApplicationSettingService;
 import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
+import vn.com.gsoft.inventory.util.system.DataUtils;
 
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +52,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private DonViTinhsRepository donViTinhsRepository;
     private InventoryRepository inventoryRepository;
     private NhaThuocsRepository nhaThuocsRepository;
+    private DocxToPdfConverter docxToPdfConverter;
     private KafkaProducer kafkaProducer;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
@@ -66,7 +70,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  PhieuNhapsRepository phieuNhapsRepository,
                                  PhieuThuChisRepository phieuThuChisRepository,
                                  BacSiesRepository bacSiesRepository,
-                                 PhieuNhapsService phieuNhapsService, KafkaProducer kafkaProducer) {
+                                 PhieuNhapsService phieuNhapsService,
+                                 KafkaProducer kafkaProducer, DocxToPdfConverter docxToPdfConverter) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.applicationSettingService = applicationSettingService;
@@ -84,6 +89,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.phieuNhapsRepository = phieuNhapsRepository;
         this.phieuThuChisRepository = phieuThuChisRepository;
         this.bacSiesRepository = bacSiesRepository;
+        this.docxToPdfConverter = docxToPdfConverter;
     }
 
     @Override
@@ -666,5 +672,28 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             data.setData(px);
             this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
         }
+    }
+
+    @Override
+    public ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+        try {
+            String loai = DataUtils.safeToString(hashMap.get("loai"), "");
+            String templatePath = null;
+            if (loai.equals("58mm")) {
+                 templatePath = "phieuXuats/phieu_khach_le_58mm.docx";
+            }
+            if (loai.equals("80mm")){
+                 templatePath = "phieuXuats/phieu_khach_le_80mm.docx";
+            }
+            FileInputStream templateInputStream = new FileInputStream(baseReportFolder + templatePath);
+            PhieuXuats phieuXuats = this.detail(DataUtils.safeToLong(hashMap.get("id")));
+            return docxToPdfConverter.convertDocxToPdf(templateInputStream, phieuXuats);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

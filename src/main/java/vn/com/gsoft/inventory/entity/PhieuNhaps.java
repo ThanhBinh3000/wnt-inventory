@@ -22,7 +22,7 @@ import java.util.UUID;
 public class PhieuNhaps extends BaseEntity {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "SoPhieuNhap")
     private Long soPhieuNhap;
@@ -140,7 +140,12 @@ public class PhieuNhaps extends BaseEntity {
 
     @Transient
     private String tenNguoiTao;
+
     @Transient
     private String targetStoreText;
+
+    //    priview
+    @Transient
+    private String diaChi;
 }
 

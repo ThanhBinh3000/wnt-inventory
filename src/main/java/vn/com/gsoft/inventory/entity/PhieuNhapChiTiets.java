@@ -114,6 +114,9 @@ public class PhieuNhapChiTiets extends BaseEntity {
 
     @Transient
     private String tenDonViTinh;
+    //    priview
+    @Transient
+    private BigDecimal thanhTien;
 
     @Transient
     private String donViTinhMaDonViTinhText;

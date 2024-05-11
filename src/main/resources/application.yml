@@ -58,3 +58,6 @@ logging:
   logstash:
     host: localhost
     port: 5000
+
+path:
+  base-report-folder: \Users\wntde\Desktop\NhaThuoc\wnt-inventory\src\main\resources\reports\
