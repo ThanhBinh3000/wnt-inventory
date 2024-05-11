@@ -92,6 +92,7 @@ public class FileUtils {
     }
 
     public static String safeToString(Object o, String defaultValue) {
+//        if (o == null) return defaultValue;
         return (o != null) ? o.toString() : defaultValue;
     }
 }
