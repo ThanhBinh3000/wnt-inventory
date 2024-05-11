@@ -3,6 +3,7 @@ package vn.com.gsoft.inventory.util.system;
 import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
+import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.IXDocReport;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
@@ -25,46 +26,39 @@ import java.util.Locale;
 @Component
 public class FileUtils {
 
-    @Transactional
-    public ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, Object... detail) {
-        try {
-            ByteArrayOutputStream outputStreamPdf = new ByteArrayOutputStream();
-            ByteArrayOutputStream outputStreamWord = new ByteArrayOutputStream();
-            ReportTemplateResponse reportTemplateResponse = new ReportTemplateResponse();
-            IXDocReport report = XDocReportRegistry.getRegistry().loadReport(inputFile, TemplateEngineKind.Velocity);
-            IContext context = report.createContext();
-            HashMap<String, Object> hashMap = new HashMap<>();
-            hashMap.put("data", data);
-            hashMap.put("numberTool", new NumberTool());
-            hashMap.put("dateTool", new DateTool());
-            hashMap.put("mathTool", new MathTool());
-            hashMap.put("locale", new Locale("vi", "VN"));
-            if (detail.length > 0) {
-                Object[] details = detail.clone().clone();
-                for (int i = 0; i < detail.length; i++) {
-                    hashMap.put("detail" + i, details[i]);
-                }
+    public ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, Object... detail) throws Exception {
+        ByteArrayOutputStream outputStreamPdf = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputStreamWord = new ByteArrayOutputStream();
+        ReportTemplateResponse reportTemplateResponse = new ReportTemplateResponse();
+        IXDocReport report = XDocReportRegistry.getRegistry().loadReport(inputFile, TemplateEngineKind.Velocity);
+        IContext context = report.createContext();
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("data", data);
+        hashMap.put("numberTool", new NumberTool());
+        hashMap.put("dateTool", new DateTool());
+        hashMap.put("mathTool", new MathTool());
+        hashMap.put("locale", new Locale("vi", "VN"));
+        if (detail.length > 0) {
+            Object[] details = detail.clone().clone();
+            for (int i = 0; i < detail.length; i++) {
+                hashMap.put("detail" + i, details[i]);
             }
-            context.putMap(hashMap);
-            report.process(context, outputStreamWord);
-            Options options = Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.XWPF);
-            report.convert(context, options, outputStreamPdf);
-            byte[] pdfBytes = outputStreamPdf.toByteArray();
-            byte[] wordBytes = outputStreamWord.toByteArray();
-            reportTemplateResponse.setPdfSrc(convertToBase64(pdfBytes));
-            reportTemplateResponse.setWordSrc(convertToBase64(wordBytes));
-            outputStreamPdf.close();
-            outputStreamWord.close();
-            return reportTemplateResponse;
-        } catch (Throwable e) {
-            e.printStackTrace();
         }
-        return null;
+        context.putMap(hashMap);
+        report.process(context, outputStreamWord);
+        Options options = Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.XWPF);
+        report.convert(context, options, outputStreamPdf);
+        byte[] pdfBytes = outputStreamPdf.toByteArray();
+        byte[] wordBytes = outputStreamWord.toByteArray();
+        reportTemplateResponse.setPdfSrc(convertToBase64(pdfBytes));
+        reportTemplateResponse.setWordSrc(convertToBase64(wordBytes));
+        outputStreamPdf.close();
+        outputStreamWord.close();
+        return reportTemplateResponse;
     }
 
     public String convertToBase64(byte[] byteArray) throws Exception {
-        String base64String = Base64.getEncoder().encodeToString(byteArray);
-        return base64String;
+        return Base64.getEncoder().encodeToString(byteArray);
     }
 
     public static InputStream templateInputStream(String templateName) throws IOException {
@@ -73,7 +67,11 @@ public class FileUtils {
         if (file.exists()) {
             templateInputStream = new FileInputStream(file);
         } else {
-            templateInputStream = new ClassPathResource(templateName).getInputStream();
+            try {
+                templateInputStream = new ClassPathResource(templateName).getInputStream();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
 
         if (templateInputStream == null) {
