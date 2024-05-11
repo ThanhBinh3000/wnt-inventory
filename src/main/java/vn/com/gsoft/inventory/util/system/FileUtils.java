@@ -1,8 +1,8 @@
-package vn.com.gsoft.inventory.common;
+package vn.com.gsoft.inventory.util.system;
 
+import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
-import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.document.IXDocReport;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
@@ -10,17 +10,20 @@ import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.*;
+import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Locale;
 
 @Component
-public class DocxToPdfConverter {
-
+public class FileUtils {
 
     @Transactional
     public ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, Object... detail) {
@@ -62,5 +65,35 @@ public class DocxToPdfConverter {
     public String convertToBase64(byte[] byteArray) throws Exception {
         String base64String = Base64.getEncoder().encodeToString(byteArray);
         return base64String;
+    }
+
+    public static InputStream templateInputStream(String templateName) throws IOException {
+        InputStream templateInputStream = null;
+        File file = new ClassPathResource(templateName).getFile();
+        if (file.exists()) {
+            templateInputStream = new FileInputStream(file);
+        } else {
+            templateInputStream = new ClassPathResource(templateName).getInputStream();
+        }
+
+        if (templateInputStream == null) {
+            throw new FileNotFoundException("Không tìm thấy file template: " + templateName);
+        }
+        return templateInputStream;
+    }
+
+    public static Long safeToLong(Object o) {
+        if (o == null) return 0L;
+        if (o instanceof BigDecimal) return ((BigDecimal) o).longValue();
+        if (o instanceof BigInteger) return ((BigInteger) o).longValue();
+        try {
+            return Long.parseLong(o.toString());
+        } catch (NumberFormatException ignored) {
+            return 0L;
+        }
+    }
+
+    public static String safeToString(Object o, String defaultValue) {
+        return (o != null) ? o.toString() : defaultValue;
     }
 }

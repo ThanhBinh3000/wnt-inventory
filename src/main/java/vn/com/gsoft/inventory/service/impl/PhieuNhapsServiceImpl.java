@@ -6,12 +6,10 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.inventory.common.DocxToPdfConverter;
 import vn.com.gsoft.inventory.constant.ESynStatus;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
@@ -25,6 +23,7 @@ import vn.com.gsoft.inventory.service.ApplicationSettingService;
 import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
+import vn.com.gsoft.inventory.util.system.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -63,8 +62,6 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private NhaThuocsRepository nhaThuocsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
-    @Autowired
-    private DocxToPdfConverter docxToPdfConverter;
     @Autowired
     private PhieuXuatChiTietsRepository phieuXuatChiTietsRepository;
 
@@ -604,26 +601,14 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             throw new Exception("Bad request.");
         try {
             String templatePath = "/template/phieuNhaps/phieu_nhap_hang.docx";
-            InputStream templateInputStream = null;
-            File file = new ClassPathResource(templatePath).getFile();
-            if (file.exists()) {
-                templateInputStream = new FileInputStream(file);
-            } else {
-                try {
-                    templateInputStream = new ClassPathResource(templatePath).getInputStream();
-                } catch (Exception ex) {
-                    Logger.getLogger("File").info(ex.getMessage());
-                }
-            }
-            if (templateInputStream == null) {
-                throw new Exception("Không tìm file template.");
-            }
-            PhieuNhaps phieuNhaps = this.detail(DataUtils.safeToLong(hashMap.get("id")));
+            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
+            PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
             List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
             allByPhieuNhapMaPhieuNhap.forEach(item -> {
                 item.setThanhTien(this.calendarTongTien(item));
             });
-            return docxToPdfConverter.convertDocxToPdf(templateInputStream, phieuNhaps);
+            FileUtils fileUtils = new FileUtils();
+            return fileUtils.convertDocxToPdf(templateInputStream, phieuNhaps);
         } catch (Exception e) {
             e.printStackTrace();
         }

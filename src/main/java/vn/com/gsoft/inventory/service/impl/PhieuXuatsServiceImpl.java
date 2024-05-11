@@ -7,12 +7,10 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import vn.com.gsoft.inventory.common.DocxToPdfConverter;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
@@ -25,16 +23,13 @@ import vn.com.gsoft.inventory.service.ApplicationSettingService;
 import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
-import vn.com.gsoft.inventory.util.system.DataUtils;
+import vn.com.gsoft.inventory.util.system.FileUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
@@ -56,7 +51,6 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private DonViTinhsRepository donViTinhsRepository;
     private InventoryRepository inventoryRepository;
     private NhaThuocsRepository nhaThuocsRepository;
-    private DocxToPdfConverter docxToPdfConverter;
     private KafkaProducer kafkaProducer;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
@@ -75,7 +69,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  PhieuThuChisRepository phieuThuChisRepository,
                                  BacSiesRepository bacSiesRepository,
                                  PhieuNhapsService phieuNhapsService,
-                                 KafkaProducer kafkaProducer, DocxToPdfConverter docxToPdfConverter) {
+                                 KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.applicationSettingService = applicationSettingService;
@@ -93,7 +87,6 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.phieuNhapsRepository = phieuNhapsRepository;
         this.phieuThuChisRepository = phieuThuChisRepository;
         this.bacSiesRepository = bacSiesRepository;
-        this.docxToPdfConverter = docxToPdfConverter;
     }
 
     @Override
@@ -684,7 +677,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (userInfo == null)
             throw new Exception("Bad request.");
         try {
-            String loai = DataUtils.safeToString(hashMap.get("loai"), "");
+            String loai = FileUtils.safeToString(hashMap.get("loai"), "");
             String templatePath = null;
             if (loai.equals("58mm")) {
                 templatePath = "template/phieuXuats/phieu_khach_le_58mm.docx";
@@ -692,22 +685,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             if (loai.equals("80mm")) {
                 templatePath = "template/phieuXuats/phieu_khach_le_80mm.docx";
             }
-            InputStream templateInputStream = null;
-            File file = new ClassPathResource(templatePath).getFile();
-            if (file.exists()) {
-                templateInputStream = new FileInputStream(file);
-            } else {
-                try {
-                    templateInputStream = new ClassPathResource(templatePath).getInputStream();
-                } catch (Exception ex) {
-                    Logger.getLogger("File").info(ex.getMessage());
-                }
-            }
-            if (templateInputStream == null) {
-                throw new Exception("Không tìm file template.");
-            }
-            PhieuXuats phieuXuats = this.detail(DataUtils.safeToLong(hashMap.get("id")));
-            return docxToPdfConverter.convertDocxToPdf(templateInputStream, phieuXuats);
+            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
+            PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+            FileUtils fileUtils = new FileUtils();
+            return fileUtils.convertDocxToPdf(templateInputStream, phieuXuats);
         } catch (Exception e) {
             e.printStackTrace();
         }

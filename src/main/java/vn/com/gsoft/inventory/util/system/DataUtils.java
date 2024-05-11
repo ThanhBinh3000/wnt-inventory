@@ -123,20 +123,4 @@ public class DataUtils {
         // Format the date
         return formatter.format(date);
     }
-
-    public static Long safeToLong(Object o) {
-        if (o == null) return 0L;
-        if (o instanceof BigDecimal) return ((BigDecimal) o).longValue();
-        if (o instanceof BigInteger) return ((BigInteger) o).longValue();
-        try {
-            return Long.parseLong(o.toString());
-        } catch (NumberFormatException ignored) {
-            return 0L;
-        }
-    }
-
-    public static String safeToString(Object o, String defaultValue) {
-        return (o != null) ? o.toString() : defaultValue;
-    }
-
 }
