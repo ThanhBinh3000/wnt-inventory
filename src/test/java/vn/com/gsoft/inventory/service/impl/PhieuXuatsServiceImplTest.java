@@ -44,6 +44,13 @@ class PhieuXuatsServiceImplTest {
         assert sampleNotes != null;
     }
     @Test
+    void searchList() throws Exception {
+        PhieuXuatsReq noteMedicalsReq = new PhieuXuatsReq();
+        noteMedicalsReq.setNhaThuocMaNhaThuoc("0100");
+        List<PhieuXuats> sampleNotes = phieuXuatsService.searchList(noteMedicalsReq);
+        assert sampleNotes != null;
+    }
+    @Test
     void detail() throws Exception {
         PhieuXuats detail = phieuXuatsService.detail(35543753l);
         assert detail!= null;
