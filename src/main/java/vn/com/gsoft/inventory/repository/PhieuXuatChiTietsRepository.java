@@ -165,7 +165,12 @@ public interface PhieuXuatChiTietsRepository extends BaseRepository<PhieuXuatChi
             " d.SoPhieuXuat as soPhieuXuat, " +
             " d.NgayXuat  as ngayXuat, " +
             " d.VAT  as vatPhieuXuat, " +
-            " d.DebtPaymentAmount  as debtPaymentAmount " +
+            " d.DebtPaymentAmount  as debtPaymentAmount, " +
+            " d.MaLoaiXuatNhap  as maLoaiXuatNhap," +
+            " d.KhachHang_MaKhachHang  as khachHangMaKhachHang, " +
+            " d.CreatedBy_UserId  as createdByUserId, " +
+            " d.TargetStoreId  as targetStoreId, " +
+            " d.NhaCungCap_MaNhaCungCap  as nhaCungCapMaNhaCungCap " +
             " FROM PhieuXuatChiTiets c "+
             " JOIN PhieuXuats d on c.PhieuXuat_MaPhieuXuat = d.id "+
             " WHERE 1=1 "
