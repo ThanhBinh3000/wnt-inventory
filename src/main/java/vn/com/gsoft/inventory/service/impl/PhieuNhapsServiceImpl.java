@@ -60,6 +60,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private InventoryRepository inventoryRepository;
     @Autowired
     private NhaThuocsRepository nhaThuocsRepository;
+    @Autowired
+    private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
     @Autowired
@@ -86,6 +88,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         }
         Page<PhieuNhaps> phieuNhaps = hdrRepo.searchPage(req, pageable);
         phieuNhaps.getContent().forEach(item -> {
+            if (item.getLoaiXuatNhapMaLoaiXuatNhap() != null && item.getLoaiXuatNhapMaLoaiXuatNhap() > 0) {
+                Optional<LoaiXuatNhaps> byId = loaiXuatNhapsRepository.findById(item.getLoaiXuatNhapMaLoaiXuatNhap());
+                byId.ifPresent(loaiXuatNhaps -> item.setLoaiXuatNhapMaLoaiXuatNhapText(loaiXuatNhaps.getTenLoaiXuatNhap()));
+            }
             if (item.getNhaCungCapMaNhaCungCap() != null && item.getNhaCungCapMaNhaCungCap() > 0) {
                 Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(item.getNhaCungCapMaNhaCungCap());
                 byId.ifPresent(nhaCungCaps -> item.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
@@ -390,7 +396,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             if (byThuocId.isPresent()) {
                 Thuocs thuocs = byThuocId.get();
                 List<DonViTinhs> dviTinh = new ArrayList<>();
-                if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(1);
@@ -400,7 +406,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
                         thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                     }
                 }
-                if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(thuocs.getHeSo());
@@ -466,7 +472,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             if (byThuocId.isPresent()) {
                 Thuocs thuocs = byThuocId.get();
                 List<DonViTinhs> dviTinh = new ArrayList<>();
-                if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(1);
@@ -476,7 +482,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
                         thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                     }
                 }
-                if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(thuocs.getHeSo());

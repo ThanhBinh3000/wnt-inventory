@@ -9,21 +9,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import vn.com.gsoft.inventory.entity.PhieuXuats;
+import vn.com.gsoft.inventory.entity.PhieuNhaps;
+import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.PaggingReq;
 import vn.com.gsoft.inventory.model.system.Profile;
-import vn.com.gsoft.inventory.service.PhieuXuatsService;
+import vn.com.gsoft.inventory.service.PhieuNhapsService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Slf4j
-class PhieuXuatsServiceImplTest {
+class PhieuNhapsServiceImplTest {
     @Autowired
-    private PhieuXuatsService phieuXuatsService;
+    private PhieuNhapsService phieuNhapsService;
 
     @BeforeAll
     static void beforeAll() {
@@ -32,29 +32,22 @@ class PhieuXuatsServiceImplTest {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(p, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
+
     @Test
     void searchPage() throws Exception {
-        PhieuXuatsReq noteMedicalsReq = new PhieuXuatsReq();
+        PhieuNhapsReq noteMedicalsReq = new PhieuNhapsReq();
         PaggingReq paggingReq = new PaggingReq();
         paggingReq.setPage(0);
         paggingReq.setLimit(10);
         noteMedicalsReq.setPaggingReq(paggingReq);
         noteMedicalsReq.setNhaThuocMaNhaThuoc("0010");
-        Page<PhieuXuats> sampleNotes = phieuXuatsService.searchPage(noteMedicalsReq);
+        Page<PhieuNhaps> sampleNotes = phieuNhapsService.searchPage(noteMedicalsReq);
         assert sampleNotes != null;
     }
-    @Test
-    void searchList() throws Exception {
-        PhieuXuatsReq noteMedicalsReq = new PhieuXuatsReq();
-        noteMedicalsReq.setNhaThuocMaNhaThuoc("0100");
-        List<PhieuXuats> sampleNotes = phieuXuatsService.searchList(noteMedicalsReq);
-        assert sampleNotes != null;
-    }
+
     @Test
     void detail() throws Exception {
-        PhieuXuats detail = phieuXuatsService.detail(35543753l);
-        assert detail!= null;
+        PhieuNhaps detail = phieuNhapsService.detail(35543753l);
+        assert detail != null;
     }
-
-
 }

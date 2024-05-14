@@ -12,10 +12,7 @@ import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapChiTietsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
-import vn.com.gsoft.inventory.repository.DonViTinhsRepository;
-import vn.com.gsoft.inventory.repository.InventoryRepository;
-import vn.com.gsoft.inventory.repository.PhieuNhapChiTietsRepository;
-import vn.com.gsoft.inventory.repository.ThuocsRepository;
+import vn.com.gsoft.inventory.repository.*;
 import vn.com.gsoft.inventory.service.PhieuNhapChiTietsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
 
@@ -27,24 +24,34 @@ import java.util.Optional;
 
 @Service
 @Log4j2
-public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTiets, PhieuNhapChiTietsReq,Long> implements PhieuNhapChiTietsService {
+public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTiets, PhieuNhapChiTietsReq, Long> implements PhieuNhapChiTietsService {
 
-	private PhieuNhapChiTietsRepository hdrRepo;
+    private PhieuNhapChiTietsRepository hdrRepo;
 
-	@Autowired
-	private ThuocsRepository thuocsRepository;
+    @Autowired
+    private ThuocsRepository thuocsRepository;
 
-	@Autowired
-	private DonViTinhsRepository donViTinhsRepository;
+    @Autowired
+    private DonViTinhsRepository donViTinhsRepository;
 
-	@Autowired
-	private InventoryRepository inventoryRepository;
+    @Autowired
+    private InventoryRepository inventoryRepository;
+    @Autowired
+    private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
+    @Autowired
+    private KhachHangsRepository khachHangsRepository;
+    @Autowired
+    private UserProfileRepository userProfileRepository;
+    @Autowired
+    private NhaThuocsRepository nhaThuocsRepository;
+    @Autowired
+    private NhaCungCapsRepository nhaCungCapsRepository;
 
-	@Autowired
-	public PhieuNhapChiTietsServiceImpl(PhieuNhapChiTietsRepository hdrRepo) {
-		super(hdrRepo);
-		this.hdrRepo = hdrRepo;
-	}
+    @Autowired
+    public PhieuNhapChiTietsServiceImpl(PhieuNhapChiTietsRepository hdrRepo) {
+        super(hdrRepo);
+        this.hdrRepo = hdrRepo;
+    }
 
 //	@Override
 //	public Page<PhieuNhapChiTiets> searchPage(PhieuNhapChiTietsReq req) throws Exception {
@@ -81,53 +88,64 @@ public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTi
 //		return phieuNhaps;
 //	}
 
-	@Override
-	public Page<PhieuNhapChiTiets> searchPageCustom(PhieuNhapChiTietsReq req) throws Exception {
-		Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
-		if(req.getRecordStatusId() ==null){
-			req.setRecordStatusId(RecordStatusContains.ACTIVE);
-		}
-		Page<PhieuNhapChiTiets> xuatChiTiets = DataUtils.convertPage(hdrRepo.searchPageCustom(req, pageable), PhieuNhapChiTiets.class) ;
-		for(PhieuNhapChiTiets ct: xuatChiTiets.getContent()){
-			if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
-				Optional<Thuocs> thuocsOpt = thuocsRepository.findById(ct.getThuocThuocId());
-				if (thuocsOpt.isPresent()) {
-					Thuocs thuocs = thuocsOpt.get();
-					ct.setMaThuocText(thuocs.getMaThuoc());
-					ct.setTenThuocText(thuocs.getTenThuoc());
-					List<DonViTinhs> dviTinh = new ArrayList<>();
-					if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
-						Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
-						if (byId.isPresent()) {
-							byId.get().setFactor(1);
-							dviTinh.add(byId.get());
-							thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
-						}
-					}
-					if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
-						Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
-						if (byId.isPresent()) {
-							byId.get().setFactor(thuocs.getHeSo());
-							byId.get().setGiaBan(ct.getGiaBanLe().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
-							dviTinh.add(byId.get());
-							thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
-						}
-					}
-					thuocs.setListDonViTinhs(dviTinh);
-					InventoryReq inventoryReq = new InventoryReq();
-					inventoryReq.setDrugID(thuocs.getId());
-					inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
-					inventoryReq.setRecordStatusId(RecordStatusContains.ACTIVE);
-					Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
-					inventory.ifPresent(thuocs::setInventory);
-					ct.setThuocs(thuocs);
-				}
-			}
-			if (ct.getDonViTinhMaDonViTinh() != null && ct.getDonViTinhMaDonViTinh() > 0) {
-				ct.setDonViTinhMaDonViTinhText(donViTinhsRepository.findById(ct.getDonViTinhMaDonViTinh()).get().getTenDonViTinh());
-			}
-		}
-		return xuatChiTiets;
-	}
-
+    @Override
+    public Page<PhieuNhapChiTiets> searchPageCustom(PhieuNhapChiTietsReq req) throws Exception {
+        Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
+        if (req.getRecordStatusId() == null) {
+            req.setRecordStatusId(RecordStatusContains.ACTIVE);
+        }
+        Page<PhieuNhapChiTiets> xuatChiTiets = DataUtils.convertPage(hdrRepo.searchPageCustom(req, pageable), PhieuNhapChiTiets.class);
+        for (PhieuNhapChiTiets ct : xuatChiTiets.getContent()) {
+            if (ct.getThuocThuocId() != null && ct.getThuocThuocId() > 0) {
+                Optional<Thuocs> thuocsOpt = thuocsRepository.findById(ct.getThuocThuocId());
+                if (thuocsOpt.isPresent()) {
+                    Thuocs thuocs = thuocsOpt.get();
+                    ct.setMaThuocText(thuocs.getMaThuoc());
+                    ct.setTenThuocText(thuocs.getTenThuoc());
+                    List<DonViTinhs> dviTinh = new ArrayList<>();
+                    if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
+                        if (byId.isPresent()) {
+                            byId.get().setFactor(1);
+                            dviTinh.add(byId.get());
+                            thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
+                        }
+                    }
+                    if (thuocs.getDonViThuNguyenMaDonViTinh() != null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
+                        if (byId.isPresent()) {
+                            byId.get().setFactor(thuocs.getHeSo());
+                            byId.get().setGiaBan(ct.getGiaBanLe().multiply(BigDecimal.valueOf(thuocs.getHeSo())));
+                            dviTinh.add(byId.get());
+                            thuocs.setTenDonViTinhThuNguyen(byId.get().getTenDonViTinh());
+                        }
+                    }
+                    thuocs.setListDonViTinhs(dviTinh);
+                    InventoryReq inventoryReq = new InventoryReq();
+                    inventoryReq.setDrugID(thuocs.getId());
+                    inventoryReq.setDrugStoreID(thuocs.getNhaThuocMaNhaThuoc());
+                    inventoryReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+                    Optional<Inventory> inventory = inventoryRepository.searchDetail(inventoryReq);
+                    inventory.ifPresent(thuocs::setInventory);
+                    ct.setThuocs(thuocs);
+                }
+            }
+            if (ct.getLoaiXuatNhapMaLoaiXuatNhap() != null && ct.getLoaiXuatNhapMaLoaiXuatNhap() > 0) {
+                ct.setLoaiXuatNhapMaLoaiXuatNhapText(this.loaiXuatNhapsRepository.findById(ct.getLoaiXuatNhapMaLoaiXuatNhap()).get().getTenLoaiXuatNhap());
+            }
+            if (ct.getKhachHangMaKhachHang() != null && ct.getKhachHangMaKhachHang() > 0) {
+                ct.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(ct.getKhachHangMaKhachHang()).get().getTenKhachHang());
+            }
+            if (ct.getCreatedByUserId() != null && ct.getCreatedByUserId() > 0) {
+                ct.setCreatedByUserText(this.userProfileRepository.findById(ct.getCreatedByUserId()).get().getTenDayDu());
+            }
+            if (ct.getNhaCungCapMaNhaCungCap() != null && ct.getNhaCungCapMaNhaCungCap() > 0) {
+                ct.setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(ct.getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+            }
+            if (ct.getDonViTinhMaDonViTinh() != null && ct.getDonViTinhMaDonViTinh() > 0) {
+                ct.setDonViTinhMaDonViTinhText(donViTinhsRepository.findById(ct.getDonViTinhMaDonViTinh()).get().getTenDonViTinh());
+            }
+        }
+        return xuatChiTiets;
+    }
 }

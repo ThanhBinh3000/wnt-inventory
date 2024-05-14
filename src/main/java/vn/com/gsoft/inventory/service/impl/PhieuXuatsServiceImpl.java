@@ -52,6 +52,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private InventoryRepository inventoryRepository;
     private NhaThuocsRepository nhaThuocsRepository;
     private KafkaProducer kafkaProducer;
+    private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
 
@@ -69,6 +70,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  PhieuThuChisRepository phieuThuChisRepository,
                                  BacSiesRepository bacSiesRepository,
                                  PhieuNhapsService phieuNhapsService,
+                                 LoaiXuatNhapsRepository loaiXuatNhapsRepository,
                                  KafkaProducer kafkaProducer) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
@@ -86,6 +88,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.inventoryRepository = inventoryRepository;
         this.phieuNhapsRepository = phieuNhapsRepository;
         this.phieuThuChisRepository = phieuThuChisRepository;
+        this.loaiXuatNhapsRepository = loaiXuatNhapsRepository;
         this.bacSiesRepository = bacSiesRepository;
     }
 
@@ -100,6 +103,9 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         }
         Page<PhieuXuats> phieuXuats = hdrRepo.searchPage(req, pageable);
         for (PhieuXuats px : phieuXuats.getContent()) {
+            if (px.getMaLoaiXuatNhap() != null && px.getMaLoaiXuatNhap() > 0) {
+                px.setMaLoaiXuatNhapText(this.loaiXuatNhapsRepository.findById(px.getMaLoaiXuatNhap()).get().getTenLoaiXuatNhap());
+            }
             if (px.getKhachHangMaKhachHang() != null && px.getKhachHangMaKhachHang() > 0) {
                 px.setKhachHangMaKhachHangText(this.khachHangsRepository.findById(px.getKhachHangMaKhachHang()).get().getTenKhachHang());
             }
@@ -480,7 +486,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
@@ -489,7 +495,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
@@ -554,7 +560,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
@@ -563,7 +569,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if (thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());

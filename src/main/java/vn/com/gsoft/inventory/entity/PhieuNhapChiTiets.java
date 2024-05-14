@@ -132,6 +132,19 @@ public class PhieuNhapChiTiets extends BaseEntity {
     private Double vatPhieuNhap;
     @Transient
     private Double debtPaymentAmount;
-
+    @Transient
+    private Long loaiXuatNhapMaLoaiXuatNhap;
+    @Transient
+    private String loaiXuatNhapMaLoaiXuatNhapText;
+    @Transient
+    private Long khachHangMaKhachHang;
+    @Transient
+    private String khachHangMaKhachHangText;
+    @Transient
+    private String createdByUserText;
+    @Transient
+    private Long nhaCungCapMaNhaCungCap;
+    @Transient
+    private String nhaCungCapMaNhaCungCapText;
 }
 

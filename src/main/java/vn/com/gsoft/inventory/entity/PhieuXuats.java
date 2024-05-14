@@ -138,7 +138,7 @@ public class PhieuXuats extends BaseEntity {
     @Column(name = "KeyOldEInvoice")
     private String keyOldEInvoice;
     @Column(name = "EInvoiceStatusID")
-    private Long eInvoiceStatusID;
+    private Long einvoiceStatusID;
     @Column(name = "SignEInvoiceStatusID")
     private Long signEInvoiceStatusID;
     @Column(name = "ConnEInvoiceDateTime")
@@ -152,22 +152,22 @@ public class PhieuXuats extends BaseEntity {
     @Column(name = "EditedEInvoiceDateTime")
     private Date editedEInvoiceDateTime;
     @Column(name = "KHHDon")
-    private String kHHDon;
+    private String khhDon;
     @Column(name = "KHMSHDon")
-    private String kHMSHDon;
+    private String khmshDon;
     @Column(name = "SHDon")
-    private String sHDon;
+    private String shDon;
     @Column(name = "PickUpOrderId")
     private Long pickUpOrderId;
     @Column(name = "ESampleNoteCode")
-    private String eSampleNoteCode;
+    private String esampleNoteCode;
     @Lob
     @Column(name = "LinkConfirm")
     private String linkConfirm;
     @Column(name = "TaxAuthorityCode")
     private String taxAuthorityCode;
     @Column(name = "EInvoiveResult")
-    private String eInvoiveResult;
+    private String einvoiveResult;
     @Column(name = "IsRefSampleNote")
     private Boolean isRefSampleNote;
     @Column(name = "NextPurchaseDate")
@@ -182,9 +182,9 @@ public class PhieuXuats extends BaseEntity {
     private Long targetManagementId;
 
     @Transient
-    private Boolean IsConnectivity;
+    private Boolean isConnectivity;
     @Transient
-    private Boolean IsManagement;
+    private Boolean isManagement;
     @Transient
     private String createdByUserText;
     @Transient
@@ -193,6 +193,8 @@ public class PhieuXuats extends BaseEntity {
     private String khachHangMaKhachHangText;
     @Transient
     private String bacSyMaBacSyText;
+    @Transient
+    private String maLoaiXuatNhapText;
     @Transient
     private List<PhieuXuatChiTiets> chiTiets;
 }
