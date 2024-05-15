@@ -306,6 +306,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             chiTiet.setChietKhau(BigDecimal.valueOf(0));
             chiTiet.setPhieuNhapMaPhieuNhap(idHdr);
             chiTiet.setIsModified(false);
+            chiTiet.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
         this.dtlRepo.saveAll(req.getChiTiets());
         return req.getChiTiets();
