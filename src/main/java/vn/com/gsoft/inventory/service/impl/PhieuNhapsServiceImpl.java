@@ -396,7 +396,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             if (byThuocId.isPresent()) {
                 Thuocs thuocs = byThuocId.get();
                 List<DonViTinhs> dviTinh = new ArrayList<>();
-                if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(1);
@@ -406,7 +406,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
                         thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                     }
                 }
-                if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                if (thuocs.getDonViThuNguyenMaDonViTinh() != null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(thuocs.getHeSo());
@@ -472,7 +472,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             if (byThuocId.isPresent()) {
                 Thuocs thuocs = byThuocId.get();
                 List<DonViTinhs> dviTinh = new ArrayList<>();
-                if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(1);
@@ -482,7 +482,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
                         thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                     }
                 }
-                if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                if (thuocs.getDonViThuNguyenMaDonViTinh() != null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                     if (byId.isPresent()) {
                         byId.get().setFactor(thuocs.getHeSo());
@@ -605,20 +605,15 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        try {
-            String templatePath = "/template/phieuNhaps/phieu_nhap_hang.docx";
-            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-            PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-            List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
-            allByPhieuNhapMaPhieuNhap.forEach(item -> {
-                item.setThanhTien(this.calendarTongTien(item));
-            });
-            FileUtils fileUtils = new FileUtils();
-            return fileUtils.convertDocxToPdf(templateInputStream, phieuNhaps);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        String templatePath = "/template/phieuNhaps/phieu_nhap_hang.docx";
+        InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
+        PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+        List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
+        allByPhieuNhapMaPhieuNhap.forEach(item -> {
+            item.setThanhTien(this.calendarTongTien(item));
+        });
+        FileUtils fileUtils = new FileUtils();
+        return fileUtils.convertDocxToPdf(templateInputStream, phieuNhaps);
     }
 
     public BigDecimal calendarTongTien(PhieuNhapChiTiets rowTable) {

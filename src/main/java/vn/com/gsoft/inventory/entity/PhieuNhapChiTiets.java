@@ -146,5 +146,13 @@ public class PhieuNhapChiTiets extends BaseEntity {
     private Long nhaCungCapMaNhaCungCap;
     @Transient
     private String nhaCungCapMaNhaCungCapText;
+    @Transient
+    private Long maLoaiXuatNhap;
+    @Transient
+    private String maLoaiXuatNhapText;
+    @Transient
+    private Long targetStoreId;
+    @Transient
+    private String targetStoreText;
 }
 

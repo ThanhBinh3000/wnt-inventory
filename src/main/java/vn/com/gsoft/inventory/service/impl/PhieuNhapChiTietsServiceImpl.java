@@ -145,6 +145,9 @@ public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTi
             if (ct.getDonViTinhMaDonViTinh() != null && ct.getDonViTinhMaDonViTinh() > 0) {
                 ct.setDonViTinhMaDonViTinhText(donViTinhsRepository.findById(ct.getDonViTinhMaDonViTinh()).get().getTenDonViTinh());
             }
+            if (ct.getMaLoaiXuatNhap() != null && ct.getMaLoaiXuatNhap() > 0) {
+                ct.setMaLoaiXuatNhapText(this.loaiXuatNhapsRepository.findById(ct.getMaLoaiXuatNhap()).get().getTenLoaiXuatNhap());
+            }
         }
         return xuatChiTiets;
     }
