@@ -333,6 +333,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             PhieuNhapChiTiets ct = new PhieuNhapChiTiets();
             BeanUtils.copyProperties(chiTiet, ct, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+            ct.setPhieuNhapMaPhieuNhap(pn.getId());
             pn.getChiTiets().add(ct);
         }
         this.dtlRepo.saveAll(pn.getChiTiets());
@@ -367,6 +368,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             PhieuNhapChiTiets ct = new PhieuNhapChiTiets();
             BeanUtils.copyProperties(chiTiet, ct, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+            ct.setPhieuNhapMaPhieuNhap(pn.getId());
             pn.getChiTiets().add(ct);
         }
         this.dtlRepo.saveAll(pn.getChiTiets());
