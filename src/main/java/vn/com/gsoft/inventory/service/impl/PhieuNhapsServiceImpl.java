@@ -306,6 +306,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             chiTiet.setChietKhau(BigDecimal.valueOf(0));
             chiTiet.setPhieuNhapMaPhieuNhap(idHdr);
             chiTiet.setIsModified(false);
+            chiTiet.setRecordStatusId(RecordStatusContains.ACTIVE);
         }
         this.dtlRepo.saveAll(req.getChiTiets());
         return req.getChiTiets();
@@ -332,6 +333,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             PhieuNhapChiTiets ct = new PhieuNhapChiTiets();
             BeanUtils.copyProperties(chiTiet, ct, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+            ct.setPhieuNhapMaPhieuNhap(pn.getId());
             pn.getChiTiets().add(ct);
         }
         this.dtlRepo.saveAll(pn.getChiTiets());
@@ -366,6 +368,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             PhieuNhapChiTiets ct = new PhieuNhapChiTiets();
             BeanUtils.copyProperties(chiTiet, ct, "id", "created", "createdByUserId", "modified", "modifiedByUserId", "recordStatusId");
+            ct.setPhieuNhapMaPhieuNhap(pn.getId());
             pn.getChiTiets().add(ct);
         }
         this.dtlRepo.saveAll(pn.getChiTiets());
