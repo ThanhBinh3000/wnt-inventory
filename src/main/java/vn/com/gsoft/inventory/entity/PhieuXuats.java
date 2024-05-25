@@ -197,5 +197,23 @@ public class PhieuXuats extends BaseEntity {
     private String maLoaiXuatNhapText;
     @Transient
     private List<PhieuXuatChiTiets> chiTiets;
+
+    //    priview
+    @Transient
+    private String tenNhaThuoc;
+    @Transient
+    private String diaChi;
+    @Transient
+    private String dienThoai;
+    @Transient
+    private String diaChiKhachHang;
+    @Transient
+    private String sdtKhachHang;
+    @Transient
+    private Double conNo;
+    @Transient
+    private Double tienThua;
+    @Transient
+    private BigDecimal diemThuongCon;
 }
 

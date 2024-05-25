@@ -145,6 +145,8 @@ public class PhieuXuatChiTiets extends BaseEntity {
     private Long nhaCungCapMaNhaCungCap;
     @Transient
     private String nhaCungCapMaNhaCungCapText;
+    @Transient
+    private BigDecimal thanhTien;
 
 }
 

@@ -27,6 +27,7 @@ import vn.com.gsoft.inventory.util.system.FileUtils;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -461,7 +462,12 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
             if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {
-                optional.get().setKhachHangMaKhachHangText(this.khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang()).get().getTenKhachHang());
+                Optional<KhachHangs> byId = khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang());
+                if (byId.isPresent()) {
+                    optional.get().setKhachHangMaKhachHangText(byId.get().getTenKhachHang());
+                    optional.get().setDiaChiKhachHang(byId.get().getDiaChi());
+                    optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
+                }
             }
             if (optional.get().getBacSyMaBacSy() != null && optional.get().getBacSyMaBacSy() > 0) {
                 optional.get().setBacSyMaBacSyText(this.bacSiesRepository.findById(optional.get().getBacSyMaBacSy()).get().getTenBacSy());
@@ -486,7 +492,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
@@ -495,7 +501,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() != null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
@@ -538,7 +544,12 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             phieuXuatMaPhieuXuat = phieuXuatMaPhieuXuat.stream().filter(item -> RecordStatusContains.ACTIVE == item.getRecordStatusId()).collect(Collectors.toList());
             optional.get().setChiTiets(phieuXuatMaPhieuXuat);
             if (optional.get().getKhachHangMaKhachHang() != null && optional.get().getKhachHangMaKhachHang() > 0) {
-                optional.get().setKhachHangMaKhachHangText(this.khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang()).get().getTenKhachHang());
+                Optional<KhachHangs> byId = khachHangsRepository.findById(optional.get().getKhachHangMaKhachHang());
+                if (byId.isPresent()) {
+                    optional.get().setKhachHangMaKhachHangText(byId.get().getTenKhachHang());
+                    optional.get().setDiaChiKhachHang(byId.get().getDiaChi());
+                    optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
+                }
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
                 optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
@@ -560,7 +571,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                         ct.setMaThuocText(thuocs.getMaThuoc());
                         ct.setTenThuocText(thuocs.getTenThuoc());
                         List<DonViTinhs> dviTinh = new ArrayList<>();
-                        if (thuocs.getDonViXuatLeMaDonViTinh()!= null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
+                        if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(1);
@@ -569,7 +580,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                 thuocs.setTenDonViTinhXuatLe(byId.get().getTenDonViTinh());
                             }
                         }
-                        if (thuocs.getDonViThuNguyenMaDonViTinh() !=null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
+                        if (thuocs.getDonViThuNguyenMaDonViTinh() != null && thuocs.getDonViThuNguyenMaDonViTinh() > 0 && !thuocs.getDonViThuNguyenMaDonViTinh().equals(thuocs.getDonViXuatLeMaDonViTinh())) {
                             Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViThuNguyenMaDonViTinh());
                             if (byId.isPresent()) {
                                 byId.get().setFactor(thuocs.getHeSo());
@@ -683,21 +694,68 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         if (userInfo == null)
             throw new Exception("Bad request.");
         try {
-            String loai = FileUtils.safeToString(hashMap.get("loai"), "");
+            PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+            String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = null;
-            if (loai.equals("58mm")) {
-                templatePath = "template/phieuXuats/phieu_khach_le_58mm.docx";
-            }
-            if (loai.equals("80mm")) {
-                templatePath = "template/phieuXuats/phieu_khach_le_80mm.docx";
+            if (phieuXuats.getMaLoaiXuatNhap().equals(2L)) {
+                templatePath =  "/template/xuatBan/";
+                if (loai.equals("58mm")) {
+                    templatePath += "phieu_khach_le_58mm.docx";
+                }
+                if (loai.equals("80mm")) {
+                    templatePath += "phieu_khach_le_80mm.docx";
+                }
+                if (loai.equals("A4")) {
+                    templatePath += "phieu_khach_quen_A4.docx";
+                }
+                if (loai.equals("A5")) {
+                    templatePath += "phieu_khach_le_A5.docx";
+                }
+                if (loai.equals("thayThe")) {
+                    templatePath += "phieu_ten_thay_the.docx";
+                }
+                if (loai.equals("lieuDung")) {
+                    templatePath += "phieu_lieu_dung.docx";
+                }
             }
             InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-            PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-            FileUtils fileUtils = new FileUtils();
-            return fileUtils.convertDocxToPdf(templateInputStream, phieuXuats);
+            phieuXuats.setTenNhaThuoc(userInfo.getNhaThuoc().getTenNhaThuoc().toUpperCase());
+            phieuXuats.setDiaChi(userInfo.getNhaThuoc().getDiaChi());
+            phieuXuats.setDienThoai(userInfo.getNhaThuoc().getDienThoai());
+            if (phieuXuats.getTongTien() != null && phieuXuats.getDaTra() != null){
+                phieuXuats.setConNo(phieuXuats.getTongTien() - phieuXuats.getDaTra());
+                phieuXuats.setTienThua(phieuXuats.getDaTra() - phieuXuats.getTongTien());
+            }
+            if (phieuXuats.getScore() != null && phieuXuats.getPreScore() != null){
+                phieuXuats.setDiemThuongCon(phieuXuats.getPreScore().subtract(phieuXuats.getScore()));
+            }
+            List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
+            phieuXuatChiTiets.forEach(item -> {
+                item.setThanhTien(calendarTien(item));
+            });
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public BigDecimal calendarTien(PhieuXuatChiTiets rowTable) {
+        if (rowTable != null) {
+            BigDecimal discount = BigDecimal.ZERO;
+            if (new BigDecimal(rowTable.getGiaXuat()).compareTo(new BigDecimal("0.05")) > 0) {
+                discount = new BigDecimal(rowTable.getChietKhau()).divide(new BigDecimal(rowTable.getGiaXuat()), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
+            }
+            if (discount.compareTo(new BigDecimal("0.5")) < 0) {
+                discount = BigDecimal.ZERO;
+            }
+            BigDecimal vatAmount = new BigDecimal(rowTable.getVat()).compareTo(new BigDecimal("0.5")) < 0 ? BigDecimal.ZERO : new BigDecimal(rowTable.getVat());
+            BigDecimal price = new BigDecimal(rowTable.getGiaXuat()).multiply(BigDecimal.ONE.subtract(discount.divide(new BigDecimal("100"))))
+                    .multiply(BigDecimal.ONE.add(vatAmount.divide(new BigDecimal("100"))));
+            BigDecimal thanhTien = price.multiply(new BigDecimal(rowTable.getSoLuong()));
+            return thanhTien;
+        } else {
+            return null;
+        }
     }
 }

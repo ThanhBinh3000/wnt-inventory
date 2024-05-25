@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -510,11 +511,18 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         });
         if (phieuNhaps.getNhaCungCapMaNhaCungCap() != null) {
             Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(phieuNhaps.getNhaCungCapMaNhaCungCap());
-            byId.ifPresent(nhaCungCaps -> phieuNhaps.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
+            if (byId.isPresent()){
+                phieuNhaps.setTenNhaCungCap(byId.get().getTenNhaCungCap());
+                phieuNhaps.setDiaChiNhaCungCap(byId.get().getDiaChi());
+            }
         }
         if (phieuNhaps.getKhachHangMaKhachHang() != null) {
             Optional<KhachHangs> byId = khachHangsRepository.findById(phieuNhaps.getKhachHangMaKhachHang());
-            byId.ifPresent(khachHangs -> phieuNhaps.setTenKhachHang(khachHangs.getTenKhachHang()));
+            if (byId.isPresent()) {
+              phieuNhaps.setTenKhachHang(byId.get().getTenKhachHang());
+              phieuNhaps.setDiaChiKhachHang(byId.get().getDiaChi());
+              phieuNhaps.setSdtKhachHang(byId.get().getSoDienThoai());
+            }
         }
         Optional<PaymentType> byId = paymentTypeRepository.findById(phieuNhaps.getPaymentTypeId());
         byId.ifPresent(paymentType -> phieuNhaps.setTenPaymentType(paymentType.getDisplayName()));
@@ -608,29 +616,57 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        String templatePath = "/template/phieuNhaps/phieu_nhap_hang.docx";
-        InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-        PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-        List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
-        allByPhieuNhapMaPhieuNhap.forEach(item -> {
-            item.setThanhTien(this.calendarTongTien(item));
-        });
-        FileUtils fileUtils = new FileUtils();
-        return fileUtils.convertDocxToPdf(templateInputStream, phieuNhaps);
+        try {
+            PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+            String loai = FileUtils.safeToString(hashMap.get("loai"));
+            String templatePath = null;
+            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(1L)) {
+                templatePath = "/template/nhapKho/";
+                if (loai.equals("nhapHang")) {
+                    templatePath += "phieu_nhap_hang.docx";
+                }
+            }
+            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(3L)) {
+                templatePath = "/template/khachHangTraLai/";
+                if (loai.equals("80mm")) {
+                    templatePath += "khach_hang_tra_lai_80mm.docx";
+                }
+                if (loai.equals("A4")){
+                    templatePath += "phieu_khach_quen_A4.docx";
+                }
+            }
+            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
+            phieuNhaps.setTenNhaThuoc(userInfo.getNhaThuoc().getTenNhaThuoc().toUpperCase());
+            phieuNhaps.setDiaChi(userInfo.getNhaThuoc().getDiaChi());
+            phieuNhaps.setDienThoai(userInfo.getNhaThuoc().getDienThoai());
+            if (phieuNhaps.getTongTien() != null && phieuNhaps.getDaTra() != null){
+                phieuNhaps.setConNo(phieuNhaps.getTongTien() - phieuNhaps.getDaTra());
+            }
+            List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
+            allByPhieuNhapMaPhieuNhap.forEach(item -> {
+                item.setThanhTien(this.calendarTien(item));
+            });
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuNhaps);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public BigDecimal calendarTongTien(PhieuNhapChiTiets rowTable) {
+    public BigDecimal calendarTien(PhieuNhapChiTiets rowTable) {
         if (rowTable != null) {
-            BigDecimal vatRate = BigDecimal.valueOf(rowTable.getVat());
-            BigDecimal toone = new BigDecimal("100");
-            BigDecimal giaNhap = rowTable.getSoLuong().multiply(rowTable.getGiaNhap());
-            if (rowTable.getChietKhau().compareTo(BigDecimal.ZERO) > 0) {
-                giaNhap = giaNhap.multiply((toone.subtract(rowTable.getChietKhau())).divide(toone));
+            BigDecimal discount = BigDecimal.ZERO;
+            if (rowTable.getGiaNhap().compareTo(new BigDecimal("0.05")) > 0) {
+                discount = rowTable.getChietKhau().divide(rowTable.getGiaNhap(), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
             }
-            if (rowTable.getVat() > 0) {
-                giaNhap = giaNhap.add(giaNhap.multiply(vatRate.divide(toone)));
+            if (discount.compareTo(new BigDecimal("0.5")) < 0) {
+                discount = BigDecimal.ZERO;
             }
-            return giaNhap;
+            BigDecimal vatAmount = new BigDecimal(rowTable.getVat()).compareTo(new BigDecimal("0.5")) < 0 ? BigDecimal.ZERO : new BigDecimal(rowTable.getVat());
+            BigDecimal price = rowTable.getGiaNhap().multiply(BigDecimal.ONE.subtract(discount.divide(new BigDecimal("100"))))
+                    .multiply(BigDecimal.ONE.add(vatAmount.divide(new BigDecimal("100"))));
+            BigDecimal thanhTien = price.multiply(rowTable.getSoLuong());
+            return thanhTien;
         } else {
             return null;
         }

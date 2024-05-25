@@ -149,6 +149,17 @@ public class PhieuNhaps extends BaseEntity {
 
     //    priview
     @Transient
+    private String tenNhaThuoc;
+    @Transient
     private String diaChi;
+    @Transient
+    private String dienThoai;
+    @Transient
+    private String diaChiKhachHang;
+    @Transient
+    private String sdtKhachHang;
+    @Transient
+    private String diaChiNhaCungCap;
+    @Transient
+    private Double conNo;
 }
-
