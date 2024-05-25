@@ -201,6 +201,18 @@
             <artifactId>itext</artifactId>
             <version>2.1.7</version>
         </dependency>
+        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.google.zxing/core &ndash;&gt;-->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.zxing/javase -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
