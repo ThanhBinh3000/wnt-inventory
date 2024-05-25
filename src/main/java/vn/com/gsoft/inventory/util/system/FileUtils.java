@@ -1,9 +1,17 @@
 package vn.com.gsoft.inventory.util.system;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Image;
 import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
-import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.IXDocReport;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
@@ -12,21 +20,19 @@ import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.*;
 
 @Component
 public class FileUtils {
 
-    public ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, Object... detail) throws Exception {
+    public static ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, Object... detail) throws Exception {
         ByteArrayOutputStream outputStreamPdf = new ByteArrayOutputStream();
         ByteArrayOutputStream outputStreamWord = new ByteArrayOutputStream();
         ReportTemplateResponse reportTemplateResponse = new ReportTemplateResponse();
@@ -39,12 +45,21 @@ public class FileUtils {
         hashMap.put("mathTool", new MathTool());
         hashMap.put("locale", new Locale("vi", "VN"));
         if (detail.length > 0) {
-            Object[] details = detail.clone().clone();
+            Object[] details = detail.clone();
             for (int i = 0; i < detail.length; i++) {
                 hashMap.put("detail" + i, details[i]);
             }
         }
         context.putMap(hashMap);
+//        try {
+//            byte[] barcodeBytes = generateBarcode("1234567890", 300, 100);
+//            ImageData barcodeImageData = ImageDataFactory.create(barcodeBytes);
+//            context.put("barcode", barcodeImageData);
+//            insertImageIntoPdf(barcodeImageData, outputStreamPdf, 300, 100);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new Exception("Failed to generate barcode.");
+//        }
         report.process(context, outputStreamWord);
         Options options = Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.XWPF);
         report.convert(context, options, outputStreamPdf);
@@ -57,24 +72,16 @@ public class FileUtils {
         return reportTemplateResponse;
     }
 
-    public String convertToBase64(byte[] byteArray) throws Exception {
+    public static String convertToBase64(byte[] byteArray) {
         return Base64.getEncoder().encodeToString(byteArray);
     }
 
     public static InputStream templateInputStream(String templateName) throws IOException {
         InputStream templateInputStream = null;
-        File file = new ClassPathResource(templateName).getFile();
-        if (file.exists()) {
-            templateInputStream = new FileInputStream(file);
+        Resource resource = new ClassPathResource(templateName);
+        if (resource.exists()) {
+            templateInputStream = resource.getInputStream();
         } else {
-            try {
-                templateInputStream = new ClassPathResource(templateName).getInputStream();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-
-        if (templateInputStream == null) {
             throw new FileNotFoundException("Không tìm thấy file template: " + templateName);
         }
         return templateInputStream;
@@ -91,8 +98,24 @@ public class FileUtils {
         }
     }
 
-    public static String safeToString(Object o, String defaultValue) {
-//        if (o == null) return defaultValue;
-        return (o != null) ? o.toString() : defaultValue;
+    public static String safeToString(Object o) {
+        return (o != null) ? o.toString() : null;
+    }
+
+    public static byte[] generateBarcode(String text, int width, int height) throws Exception {
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(text, BarcodeFormat.CODE_128, width, height);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(bitMatrix, "png", baos);
+        return baos.toByteArray();
+    }
+
+    public static void insertImageIntoPdf(ImageData imageData, ByteArrayOutputStream outputStreamPdf, int width, int height) throws IOException {
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outputStreamPdf));
+        Document doc = new Document(pdfDoc);
+        Image barcodeImage = new Image(imageData);
+        barcodeImage.setWidth(width);
+        barcodeImage.setHeight(height);
+        doc.add(barcodeImage);
+        doc.close();
     }
 }
