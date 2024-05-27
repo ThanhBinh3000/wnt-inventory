@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import vn.com.gsoft.inventory.entity.Inventory;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 
+import java.util.HashMap;
 import java.util.List;
 
 public interface InventoryService {
@@ -12,4 +13,5 @@ public interface InventoryService {
     List<Inventory> searchList(InventoryReq req) throws Exception;
 
     Inventory searchDetail(InventoryReq req) throws Exception;
+    HashMap<Integer, Double> totalInventory(InventoryReq req) throws Exception;
 }
