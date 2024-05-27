@@ -12,6 +12,8 @@ import vn.com.gsoft.inventory.model.system.BaseResponse;
 import vn.com.gsoft.inventory.service.InventoryService;
 import vn.com.gsoft.inventory.util.system.ResponseUtils;
 
+import java.util.HashMap;
+
 @Slf4j
 @RestController
 @RequestMapping("/inventory")
@@ -35,5 +37,11 @@ public class InventoryController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> colectionDetail(@RequestBody InventoryReq objReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.searchDetail(objReq)));
+    }
+
+    @PostMapping(value = PathContains.URL_SEARCH_LIST + "/total-inventory", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public HashMap<Integer, Double> totalInventory(@RequestBody InventoryReq objReq) throws Exception {
+        return service.totalInventory(objReq);
     }
 }

@@ -13,8 +13,8 @@ import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.repository.InventoryRepository;
 import vn.com.gsoft.inventory.service.InventoryService;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {
@@ -51,5 +51,21 @@ public class InventoryServiceImpl implements InventoryService {
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         Optional<Inventory> inventory = hdrRepo.searchDetail(req);
         return inventory.orElse(null);
+    }
+
+    @Override
+    public HashMap<Integer, Double> totalInventory(InventoryReq req) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+        req.setDrugUnitID(Integer.getInteger(userInfo.getNhaThuoc().getMaNhaThuocCha()));
+        List<Inventory> inventory = hdrRepo.searchList(req);
+        Map<Integer, Double> result = inventory.stream()
+                .collect(Collectors.groupingBy(
+                        Inventory::getDrugID,
+                        Collectors.summingDouble(Inventory::getLastValue)
+                ));
+        HashMap<Integer, Double> hashMapResult = new HashMap<>(result);
+        return hashMapResult;
     }
 }
