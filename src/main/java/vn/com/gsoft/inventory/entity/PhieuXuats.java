@@ -200,11 +200,9 @@ public class PhieuXuats extends BaseEntity {
 
     //    priview
     @Transient
-    private String tenNhaThuoc;
+    private String diaChiNhaThuoc;
     @Transient
-    private String diaChi;
-    @Transient
-    private String dienThoai;
+    private String sdtNhaThuoc;
     @Transient
     private String diaChiKhachHang;
     @Transient
@@ -215,5 +213,6 @@ public class PhieuXuats extends BaseEntity {
     private Double tienThua;
     @Transient
     private BigDecimal diemThuongCon;
+    @Transient
+    private String diaChiNhaCungCap;
 }
-
