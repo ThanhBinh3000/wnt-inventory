@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.ESynStatus;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
@@ -622,13 +623,13 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = null;
-            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(1L)) {
+            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.Receipt)) {
                 templatePath = "/template/nhapKho/";
                 if (loai.equals("nhapHang")) {
                     templatePath += "phieu_nhap_hang.docx";
                 }
             }
-            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(3L)) {
+            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.ReturnFromCustomer))) {
                 templatePath = "/template/khachHangTraLai/";
                 if (loai.equals("80mm")) {
                     templatePath += "khach_hang_tra_lai_80mm.docx";

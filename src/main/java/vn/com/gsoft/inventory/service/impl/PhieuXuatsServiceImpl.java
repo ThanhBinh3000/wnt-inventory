@@ -715,7 +715,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = null;
-            if (phieuXuats.getMaLoaiXuatNhap().equals(2L)) {
+            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.Delivery))) {
                 templatePath = "/template/xuatBan/";
                 if (loai.equals("58mm")) {
                     templatePath += "phieu_khach_le_58mm.docx";
@@ -736,10 +736,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     templatePath += "phieu_lieu_dung.docx";
                 }
             }
-            if (phieuXuats.getMaLoaiXuatNhap().equals(4L)) {
+            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.ReturnToSupplier))) {
                 templatePath = "/template/xuatVeNhaCungCap/tra_nha_cung_cap.docx";
             }
-            if (phieuXuats.getMaLoaiXuatNhap().equals(8L)) {
+            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.WarehouseTransfer))) {
                 templatePath = "/template/phieuChuyenKho/phieu_chuyen_kho_A4.docx";
             }
             InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
