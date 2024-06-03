@@ -27,5 +27,6 @@ public class Role {
     private Long modifiedByUserId;
     private Long recordStatusId;
     private Boolean isDefault;
+    private String roleType;
 }
 
