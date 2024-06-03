@@ -473,10 +473,19 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 optional.get().setBacSyMaBacSyText(this.bacSiesRepository.findById(optional.get().getBacSyMaBacSy()).get().getTenBacSy());
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
-                optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
+                Optional<NhaThuocs> byId = nhaThuocsRepository.findById(optional.get().getTargetStoreId());
+                if (byId.isPresent()) {
+                    optional.get().setTargetStoreText(byId.get().getTenNhaThuoc());
+                    optional.get().setDiaChiNhaThuoc(byId.get().getDiaChi());
+                    optional.get().setSdtNhaThuoc(byId.get().getDienThoai());
+                }
             }
             if (optional.get().getNhaCungCapMaNhaCungCap() != null && optional.get().getNhaCungCapMaNhaCungCap() > 0) {
-                optional.get().setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+                Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap());
+                if (byId.isPresent()) {
+                    optional.get().setNhaCungCapMaNhaCungCapText(byId.get().getTenNhaCungCap());
+                    optional.get().setDiaChiNhaCungCap(byId.get().getDiaChi());
+                }
             }
             if (optional.get().getPaymentTypeId() != null && optional.get().getPaymentTypeId() > 0) {
                 optional.get().setPaymentTypeText(this.paymentTypeRepository.findById(optional.get().getPaymentTypeId()).get().getDisplayName());
@@ -552,10 +561,19 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 }
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
-                optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
+                Optional<NhaThuocs> byId = nhaThuocsRepository.findById(optional.get().getTargetStoreId());
+                if (byId.isPresent()) {
+                    optional.get().setTargetStoreText(byId.get().getTenNhaThuoc());
+                    optional.get().setDiaChiNhaThuoc(byId.get().getDiaChi());
+                    optional.get().setSdtNhaThuoc(byId.get().getDienThoai());
+                }
             }
             if (optional.get().getNhaCungCapMaNhaCungCap() != null && optional.get().getNhaCungCapMaNhaCungCap() > 0) {
-                optional.get().setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+                Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap());
+                if (byId.isPresent()) {
+                    optional.get().setNhaCungCapMaNhaCungCapText(byId.get().getTenNhaCungCap());
+                    optional.get().setDiaChiNhaCungCap(byId.get().getDiaChi());
+                }
             }
             if (optional.get().getPaymentTypeId() != null && optional.get().getPaymentTypeId() > 0) {
                 optional.get().setPaymentTypeText(this.paymentTypeRepository.findById(optional.get().getPaymentTypeId()).get().getDisplayName());
@@ -697,8 +715,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = null;
-            if (phieuXuats.getMaLoaiXuatNhap().equals(2L)) {
-                templatePath =  "/template/xuatBan/";
+            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.Delivery))) {
+                templatePath = "/template/xuatBan/";
                 if (loai.equals("58mm")) {
                     templatePath += "phieu_khach_le_58mm.docx";
                 }
@@ -718,15 +736,18 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     templatePath += "phieu_lieu_dung.docx";
                 }
             }
+            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.ReturnToSupplier))) {
+                templatePath = "/template/xuatVeNhaCungCap/tra_nha_cung_cap.docx";
+            }
+            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.WarehouseTransfer))) {
+                templatePath = "/template/phieuChuyenKho/phieu_chuyen_kho_A4.docx";
+            }
             InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-            phieuXuats.setTenNhaThuoc(userInfo.getNhaThuoc().getTenNhaThuoc().toUpperCase());
-            phieuXuats.setDiaChi(userInfo.getNhaThuoc().getDiaChi());
-            phieuXuats.setDienThoai(userInfo.getNhaThuoc().getDienThoai());
-            if (phieuXuats.getTongTien() != null && phieuXuats.getDaTra() != null){
+            if (phieuXuats.getTongTien() != null && phieuXuats.getDaTra() != null) {
                 phieuXuats.setConNo(phieuXuats.getTongTien() - phieuXuats.getDaTra());
                 phieuXuats.setTienThua(phieuXuats.getDaTra() - phieuXuats.getTongTien());
             }
-            if (phieuXuats.getScore() != null && phieuXuats.getPreScore() != null){
+            if (phieuXuats.getScore() != null && phieuXuats.getPreScore() != null) {
                 phieuXuats.setDiemThuongCon(phieuXuats.getPreScore().subtract(phieuXuats.getScore()));
             }
             List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);

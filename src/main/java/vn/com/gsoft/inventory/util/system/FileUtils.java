@@ -4,11 +4,6 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.itextpdf.io.image.ImageData;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Image;
 import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
@@ -51,15 +46,13 @@ public class FileUtils {
             }
         }
         context.putMap(hashMap);
-//        try {
-//            byte[] barcodeBytes = generateBarcode("1234567890", 300, 100);
-//            ImageData barcodeImageData = ImageDataFactory.create(barcodeBytes);
-//            context.put("barcode", barcodeImageData);
-//            insertImageIntoPdf(barcodeImageData, outputStreamPdf, 300, 100);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new Exception("Failed to generate barcode.");
-//        }
+//            try {
+//                String barcodeBase64 = generateBarcodeBase64("1234567890", 300, 100);
+//                context.put("barcode", barcodeBase64);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                throw new Exception("Failed to generate barcode.");
+//            }
         report.process(context, outputStreamWord);
         Options options = Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.XWPF);
         report.convert(context, options, outputStreamPdf);
@@ -70,6 +63,14 @@ public class FileUtils {
         outputStreamPdf.close();
         outputStreamWord.close();
         return reportTemplateResponse;
+    }
+
+    public static String generateBarcodeBase64(String text, int width, int height) throws Exception {
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(text, BarcodeFormat.CODE_128, width, height);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(bitMatrix, "png", baos);
+        byte[] barcodeBytes = baos.toByteArray();
+        return Base64.getEncoder().encodeToString(barcodeBytes);
     }
 
     public static String convertToBase64(byte[] byteArray) {
@@ -100,22 +101,5 @@ public class FileUtils {
 
     public static String safeToString(Object o) {
         return (o != null) ? o.toString() : null;
-    }
-
-    public static byte[] generateBarcode(String text, int width, int height) throws Exception {
-        BitMatrix bitMatrix = new MultiFormatWriter().encode(text, BarcodeFormat.CODE_128, width, height);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        MatrixToImageWriter.writeToStream(bitMatrix, "png", baos);
-        return baos.toByteArray();
-    }
-
-    public static void insertImageIntoPdf(ImageData imageData, ByteArrayOutputStream outputStreamPdf, int width, int height) throws IOException {
-        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outputStreamPdf));
-        Document doc = new Document(pdfDoc);
-        Image barcodeImage = new Image(imageData);
-        barcodeImage.setWidth(width);
-        barcodeImage.setHeight(height);
-        doc.add(barcodeImage);
-        doc.close();
     }
 }
