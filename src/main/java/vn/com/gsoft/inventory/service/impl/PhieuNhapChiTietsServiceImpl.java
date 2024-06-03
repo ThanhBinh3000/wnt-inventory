@@ -1,5 +1,6 @@
 package vn.com.gsoft.inventory.service.impl;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,11 @@ import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapChiTietsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
+import vn.com.gsoft.inventory.model.system.PaggingReq;
 import vn.com.gsoft.inventory.repository.*;
 import vn.com.gsoft.inventory.service.PhieuNhapChiTietsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
+import vn.com.gsoft.inventory.util.system.ExportExcel;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -150,5 +153,43 @@ public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTi
             }
         }
         return xuatChiTiets;
+    }
+
+    @Override
+    public void export(PhieuNhapChiTietsReq req, HttpServletResponse response) throws Exception {
+        PaggingReq paggingReq = new PaggingReq();
+        paggingReq.setPage(0);
+        paggingReq.setLimit(Integer.MAX_VALUE);
+        req.setPaggingReq(paggingReq);
+        Page<PhieuNhapChiTiets> page = this.searchPage(req);
+        List<PhieuNhapChiTiets> dataPage = page.getContent();
+
+        String title = "Lịch sử giao dịch";
+        String[] rowsName = new String[]{"STT", "Ngày", "Đối tượng", "Loại phiếu", "Tên thuốc", "Đơn vị", "Số lượng", "Đơn giá",
+                "CK", "VAT", "Lô/Hạn", "Sổ đăng ký", "Thành tiền"};
+        String fileName = "DsLichSuGiaoDich.xlsx";
+        List<Object[]> dataList = new ArrayList<Object[]>();
+        Object[] objs = null;
+
+        for (int i = 0; i < dataPage.size(); i++) {
+            PhieuNhapChiTiets data = dataPage.get(i);
+            objs = new Object[rowsName.length];
+            objs[0] = i+1;
+            objs[1] = data.getNgayNhap();
+            objs[2] = data.getSoPhieuNhap();
+            objs[3] = "i.CustomerName : i.SupplyerName";
+            objs[4] = data.getTenThuocText();
+            objs[5] = data.getDonViTinhMaDonViTinhText();
+            objs[6] = data.getSoLuong();
+            objs[7] = data.getGiaNhap();
+            objs[8] = data.getChietKhau();
+            objs[9] = data.getChietKhau();
+            objs[10] = " i.ExpiredDate != null ? i.BatchNumber + \"-\" + i.ExpiredDate.Value.ToString(\"dd/MM/yyyy\") : i.BatchNumber,";
+            objs[11] = "RegisteredNo";
+            objs[12] = "Amount";
+            dataList.add(objs);
+        }
+        ExportExcel ex = new ExportExcel(title, fileName, rowsName, dataList, response);
+        ex.export();
     }
 }

@@ -21,5 +21,6 @@ public class PathContains {
     public static final String URL_SYNC = "/sync";
     public static final String URL_SYNC_MEDICINE_PORT = "/medicine-sync";
     public static final String URL_PREVIEW = "/preview";
+    public static final String URL_EXPORT = "/export";
 
 }

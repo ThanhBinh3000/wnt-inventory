@@ -246,7 +246,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+        req.setNhaThuocMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuocCha());
         req.setStoreId(userInfo.getNhaThuoc().getId());
         req.setRecordStatusId(RecordStatusContains.ACTIVE);
         req.setIsModified(false);
