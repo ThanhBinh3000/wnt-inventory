@@ -17,24 +17,22 @@ import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
+import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
 import vn.com.gsoft.inventory.repository.*;
 import vn.com.gsoft.inventory.service.ApplicationSettingService;
 import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
-import vn.com.gsoft.inventory.util.system.DataUtils;
 import vn.com.gsoft.inventory.util.system.FileUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -68,6 +66,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private String topicName;
     @Autowired
     private PhieuXuatChiTietsRepository phieuXuatChiTietsRepository;
+    @Autowired
+    private PhieuXuatsRepository phieuXuatsRepository;
 
     @Autowired
     public PhieuNhapsServiceImpl(PhieuNhapsRepository hdrRepo,
@@ -400,6 +400,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             Optional<Thuocs> byThuocId = thuocsRepository.findById(item.getThuocThuocId());
             if (byThuocId.isPresent()) {
                 Thuocs thuocs = byThuocId.get();
+                item.setTenThuocText(thuocs.getTenThuoc());
+                item.setMaThuocText(thuocs.getMaThuoc());
                 List<DonViTinhs> dviTinh = new ArrayList<>();
                 if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
@@ -437,10 +439,13 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (phieuNhaps.getNhaCungCapMaNhaCungCap() != null && phieuNhaps.getNhaCungCapMaNhaCungCap() > 0) {
             Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(phieuNhaps.getNhaCungCapMaNhaCungCap());
             byId.ifPresent(nhaCungCaps -> phieuNhaps.setTenNhaCungCap(nhaCungCaps.getTenNhaCungCap()));
+            byId.ifPresent(nhaCungCaps -> phieuNhaps.setDiaChiNhaCungCap(nhaCungCaps.getDiaChi()));
+            byId.ifPresent(nhaCungCaps -> phieuNhaps.setMaSoThue(nhaCungCaps.getMaSoThue()));
         }
         if (phieuNhaps.getKhachHangMaKhachHang() != null && phieuNhaps.getKhachHangMaKhachHang() > 0) {
             Optional<KhachHangs> byId = khachHangsRepository.findById(phieuNhaps.getKhachHangMaKhachHang());
             byId.ifPresent(khachHangs -> phieuNhaps.setTenKhachHang(khachHangs.getTenKhachHang()));
+            byId.ifPresent(khachHangs -> phieuNhaps.setDiaChiKhachHang(khachHangs.getDiaChi()));
         }
         if (phieuNhaps.getPaymentTypeId() != null && phieuNhaps.getPaymentTypeId() > 0) {
             Optional<PaymentType> byId = paymentTypeRepository.findById(phieuNhaps.getPaymentTypeId());
@@ -456,7 +461,6 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             byId.ifPresent(nhaThuocs -> phieuNhaps.setDiaChiNhaThuoc(nhaThuocs.getDiaChi()));
             byId.ifPresent(nhaThuocs -> phieuNhaps.setSdtNhaThuoc(nhaThuocs.getDienThoai()));
         }
-
         phieuNhaps.setChiTiets(allByPhieuNhapMaPhieuNhap);
 
         return phieuNhaps;
@@ -478,6 +482,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             Optional<Thuocs> byThuocId = thuocsRepository.findById(item.getThuocThuocId());
             if (byThuocId.isPresent()) {
                 Thuocs thuocs = byThuocId.get();
+                item.setTenThuocText(thuocs.getTenThuoc());
+                item.setMaThuocText(thuocs.getMaThuoc());
                 List<DonViTinhs> dviTinh = new ArrayList<>();
                 if (thuocs.getDonViXuatLeMaDonViTinh() != null && thuocs.getDonViXuatLeMaDonViTinh() > 0) {
                     Optional<DonViTinhs> byId = donViTinhsRepository.findById(thuocs.getDonViXuatLeMaDonViTinh());
@@ -517,6 +523,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             if (byId.isPresent()) {
                 phieuNhaps.setTenNhaCungCap(byId.get().getTenNhaCungCap());
                 phieuNhaps.setDiaChiNhaCungCap(byId.get().getDiaChi());
+                phieuNhaps.setMaSoThue(byId.get().getMaSoThue());
             }
         }
         if (phieuNhaps.getKhachHangMaKhachHang() != null) {
@@ -621,30 +628,18 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             throw new Exception("Bad request.");
         try {
             PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+            updateUnpaidAmount(phieuNhaps);
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = null;
-            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(ENoteType.Receipt)) {
-                templatePath = "/template/nhapKho/";
-                if (loai.equals("nhapHang")) {
-                    templatePath += "phieu_nhap_hang.docx";
-                }
+            if (Long.valueOf(ENoteType.Receipt).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())) {
+                templatePath = handleReceiptType(userInfo, phieuNhaps);
+            }else if (Long.valueOf(ENoteType.ReturnFromCustomer).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())){
+                templatePath = handleReturnFromCustomerType(loai);
             }
-            if (phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.ReturnFromCustomer))) {
-                templatePath = "/template/khachHangTraLai/";
-                if (loai.equals("80mm")) {
-                    templatePath += "khach_hang_tra_lai_80mm.docx";
-                }
-                if (loai.equals("A4")) {
-                    templatePath += "phieu_khach_quen_A4.docx";
-                }
-                if (loai.equals("A5")) {
-                    templatePath += "phieu_khach_le_A5.docx";
-                }
-            }
+            phieuNhaps.setTargetStoreText(userInfo.getNhaThuoc().getTenNhaThuoc());
+            phieuNhaps.setDiaChiNhaThuoc(userInfo.getNhaThuoc().getDiaChi());
+            phieuNhaps.setSdtNhaThuoc(userInfo.getNhaThuoc().getDienThoai());
             InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-            if (phieuNhaps.getTongTien() != null && phieuNhaps.getDaTra() != null) {
-                phieuNhaps.setConNo(phieuNhaps.getTongTien() - phieuNhaps.getDaTra());
-            }
             List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
             allByPhieuNhapMaPhieuNhap.forEach(item -> {
                 item.setThanhTien(this.calendarTien(item));
@@ -654,6 +649,50 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             e.printStackTrace();
         }
         return null;
+    }
+
+    private String handleReceiptType(Profile userInfo, PhieuNhaps phieuNhaps ) {
+        String templatePath = "/template/nhap/";
+        List<String> validMaNhaThuoc = Arrays.asList("3214", "3215", "3216", "3217", "3218", "3219", "3774", "3775", "3776", "3777", "3778", "3779", "3780", "13202");
+        phieuNhaps.setBangChu(FileUtils.convertToWords(phieuNhaps.getTongTien()));
+        switch (phieuNhaps.getNhaThuocMaNhaThuoc()) {
+            case "9371":
+                templatePath += "RptPhieuNhap_9371.docx";
+                break;
+            case "2406":
+            case "4563":
+                templatePath += "RptPhieuNhap_4563.docx";
+                break;
+            case "4593":
+            case "6530":
+                templatePath += "RptPhieuNhap_4593.docx";
+                phieuNhaps.setTitle(phieuNhaps.getChiTiets().size() + "");
+                break;
+            case "12594":
+            case "12595":
+                templatePath += "RptPhieuNhap_12594.docx";
+                break;
+            default:
+                templatePath += !userInfo.getNhaThuoc().getIsGeneralPharmacy() && !validMaNhaThuoc.contains(phieuNhaps.getNhaThuocMaNhaThuoc()) ? "RptPhieuNhap.docx" : "RptPhieuNhapCTY.docx";
+                break;
+        }
+        return templatePath;
+    }
+
+    private String handleReturnFromCustomerType(String loai) {
+        String templatePath = "/template/nhap/";
+        switch (loai) {
+            case FileUtils.InKhachLe80mm:
+                templatePath += "RptPhieuKhachTraHang_80mm.docx";
+                break;
+            case FileUtils.InKhachQuen:
+                templatePath += "RptPhieuKhachTraHang.docx";
+                break;
+            case FileUtils.InKhachLeA5:
+                templatePath += "RptPhieuKhachTraHangA5.docx";
+                break;
+        }
+        return templatePath;
     }
 
     public BigDecimal calendarTien(PhieuNhapChiTiets rowTable) {
@@ -673,5 +712,28 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         } else {
             return null;
         }
+    }
+
+    private void updateUnpaidAmount(PhieuNhaps phieuNhaps) {
+        List<PhieuXuats> phieuXuats = getPhieuXuat(phieuNhaps);
+        Double tienNo = phieuXuats.stream()
+                .filter(item -> Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.Delivery))
+                .mapToDouble(child -> child.getTongTien() - child.getDaTra()
+                        - child.getPaymentScoreAmount()
+                        - child.getDiscount()
+                        - child.getDebtPaymentAmount().doubleValue())
+                .sum();
+        Double conNo = tienNo - phieuNhaps.getTongTien();
+        phieuNhaps.setNoCu(tienNo);
+        phieuNhaps.setConNo(conNo > 0 ? conNo : 0);
+    }
+
+    private List<PhieuXuats> getPhieuXuat(PhieuNhaps phieuNhaps) {
+        PhieuXuatsReq phieuXuatsReq = new PhieuXuatsReq();
+        phieuXuatsReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuXuatsReq.setNhaThuocMaNhaThuoc(phieuNhaps.getNhaThuocMaNhaThuoc());
+        phieuXuatsReq.setKhachHangMaKhachHang(phieuNhaps.getKhachHangMaKhachHang());
+        List<PhieuXuats> phieuXuats = phieuXuatsRepository.searchList(phieuXuatsReq);
+        return phieuXuats.stream().filter(row -> row.getPaymentTypeId() != null).collect(Collectors.toList());
     }
 }

@@ -28,6 +28,8 @@ import vn.com.gsoft.inventory.util.system.FileUtils;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -467,6 +469,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     optional.get().setKhachHangMaKhachHangText(byId.get().getTenKhachHang());
                     optional.get().setDiaChiKhachHang(byId.get().getDiaChi());
                     optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
+                    optional.get().setTaxCode(byId.get().getTaxCode());
+                    optional.get().setScores(byId.get().getScore());
                 }
             }
             if (optional.get().getBacSyMaBacSy() != null && optional.get().getBacSyMaBacSy() > 0) {
@@ -558,6 +562,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     optional.get().setKhachHangMaKhachHangText(byId.get().getTenKhachHang());
                     optional.get().setDiaChiKhachHang(byId.get().getDiaChi());
                     optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
+                    optional.get().setTaxCode(byId.get().getTaxCode());
+                    optional.get().setScores(byId.get().getScore());
                 }
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
@@ -709,56 +715,221 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     @Override
     public ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception {
         Profile userInfo = this.getLoggedUser();
-        if (userInfo == null)
+        if (userInfo == null) {
             throw new Exception("Bad request.");
+        }
         try {
             PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+            updateUnpaidAmount(phieuXuats);
             String loai = FileUtils.safeToString(hashMap.get("loai"));
-            String templatePath = null;
-            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.Delivery))) {
-                templatePath = "/template/xuatBan/";
-                if (loai.equals("58mm")) {
-                    templatePath += "phieu_khach_le_58mm.docx";
-                }
-                if (loai.equals("80mm")) {
-                    templatePath += "phieu_khach_le_80mm.docx";
-                }
-                if (loai.equals("A4")) {
-                    templatePath += "phieu_khach_quen_A4.docx";
-                }
-                if (loai.equals("A5")) {
-                    templatePath += "phieu_khach_le_A5.docx";
-                }
-                if (loai.equals("thayThe")) {
-                    templatePath += "phieu_ten_thay_the.docx";
-                }
-                if (loai.equals("lieuDung")) {
-                    templatePath += "phieu_lieu_dung.docx";
+            String templatePath = "/template/xuat/";
+            if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
+                templatePath = handleDeliveryType(userInfo, phieuXuats, loai);
+            } else if (Long.valueOf(ENoteType.ReturnToSupplier).equals(phieuXuats.getMaLoaiXuatNhap())) {
+                templatePath += "RptPhieuTraHangNhaCC.docx";
+            } else if (Long.valueOf(ENoteType.InventoryAdjustment).equals(phieuXuats.getMaLoaiXuatNhap())) {
+                templatePath += "RptPhieuXuat.docx";
+                phieuXuats.setKhachHangMaKhachHangText("Điều chỉnh kiểm kê");
+            } else if (Long.valueOf(ENoteType.WarehouseTransfer).equals(phieuXuats.getMaLoaiXuatNhap())) {
+                templatePath += "RptWarehouseTransfer.docx";
+                Optional<NhaThuocs> byIdNhaThuoc = nhaThuocsRepository.findById(phieuXuats.getTargetStoreId());
+                if (byIdNhaThuoc.isPresent()) {
+                    phieuXuats.setKhachHangMaKhachHangText(byIdNhaThuoc.get().getTenNhaThuoc());
+                    phieuXuats.setDiaChiKhachHang(byIdNhaThuoc.get().getDiaChi());
                 }
             }
-            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.ReturnToSupplier))) {
-                templatePath = "/template/xuatVeNhaCungCap/tra_nha_cung_cap.docx";
-            }
-            if (phieuXuats.getMaLoaiXuatNhap().equals(Long.valueOf(ENoteType.WarehouseTransfer))) {
-                templatePath = "/template/phieuChuyenKho/phieu_chuyen_kho_A4.docx";
-            }
+            phieuXuats.setTargetStoreText(userInfo.getNhaThuoc().getTenNhaThuoc());
+            phieuXuats.setDiaChiNhaThuoc(userInfo.getNhaThuoc().getDiaChi());
+            phieuXuats.setSdtNhaThuoc(userInfo.getNhaThuoc().getDienThoai());
             InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-            if (phieuXuats.getTongTien() != null && phieuXuats.getDaTra() != null) {
-                phieuXuats.setConNo(phieuXuats.getTongTien() - phieuXuats.getDaTra());
-                phieuXuats.setTienThua(phieuXuats.getDaTra() - phieuXuats.getTongTien());
-            }
-            if (phieuXuats.getScore() != null && phieuXuats.getPreScore() != null) {
-                phieuXuats.setDiemThuongCon(phieuXuats.getPreScore().subtract(phieuXuats.getScore()));
-            }
             List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
-            phieuXuatChiTiets.forEach(item -> {
-                item.setThanhTien(calendarTien(item));
-            });
+            phieuXuatChiTiets.forEach(item -> item.setThanhTien(calendarTien(item)));
             return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private String handleDeliveryType(Profile userInfo, PhieuXuats phieuXuats, String loai) {
+        String templatePath = "/template/xuat/";
+        switch (loai) {
+            case FileUtils.InKhachQuen:
+                templatePath = handleInKhachQuen(userInfo, phieuXuats);
+                break;
+            case FileUtils.InKhachLeA5:
+                templatePath = handleInKhachLeA5(userInfo, phieuXuats);
+                break;
+            case FileUtils.InCatLieu80mm:
+            case FileUtils.InKhachLe80mm:
+                templatePath = handleInCatLieu80mm(userInfo, phieuXuats);
+                break;
+            case FileUtils.InCatLieu58mm:
+            case FileUtils.InKhachLe58mm:
+                templatePath += "RptPhieuXuatLe58mm.docx";
+                this.thuaThieu(phieuXuats);
+                break;
+            case FileUtils.InBuonA4:
+                if ("13021".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                    templatePath += "RptPhieuXuatLe_13021.docx";
+                    phieuXuats.setBangChu("BIDV - 3950023944 - NGUYEN THI THOA");
+                    phieuXuats.setTitle("PHIẾU BÁN HÀNG");
+                }
+                break;
+            case FileUtils.InBuon80mm:
+                if ("13021".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                    templatePath += "RptPhieuXuatLe80mm_13021.docx";
+                    phieuXuats.setBangChu("BIDV - 3950023944 - NGUYEN THI THOA");
+                    phieuXuats.setTitle("PHIẾU BÁN HÀNG");
+                }
+                break;
+            case FileUtils.InBuonA5:
+                if ("13021".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                    templatePath += "RptPhieuXuatLeA5_13021.docx";
+                    phieuXuats.setBangChu("BIDV - 3950023944 - NGUYEN THI THOA");
+                    phieuXuats.setTitle("PHIẾU BÁN HÀNG");
+                }
+                break;
+            default:
+                break;
+        }
+        return templatePath;
+    }
+
+    private String handleInKhachQuen(Profile userInfo, PhieuXuats phieuXuats) {
+        List<String> validMaNhaThuoc = Arrays.asList("0279", "9371", "0188", "0010", "10146", "9928", "6288", "6287", "0441", "0188", "10562", "11371", "12035", "11386");
+        String templatePath = "/template/xuat/";
+        if (!userInfo.getNhaThuoc().getDuocSy().equals("X")) {
+            switch (phieuXuats.getNhaThuocMaNhaThuoc()) {
+                case "5933":
+                    phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien() - phieuXuats.getDiscount()));
+                    templatePath += "RptPhieuXuat_5933.docx";
+                    break;
+                case "5415":
+                    templatePath += "RptPhieuXuat_5415.docx";
+                    break;
+                case "10385":
+                    phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                    templatePath += "RptPhieuXuatKho_10385.docx";
+                    break;
+                case "10322":
+                    templatePath += "RptPhieuXuat_10322.docx";
+                    break;
+                case "10865":
+                    templatePath += "RptPhieuXuat_10865.docx";
+                    break;
+                case "13021":
+                    templatePath += "RptPhieuXuatLe_13021.docx";
+                    phieuXuats.setBangChu("ICB - 0974825446 - NGUYEN THI THOA");
+                    phieuXuats.setTitle("PHIẾU XUẤT KHO");
+                    break;
+                default:
+                    if (validMaNhaThuoc.contains(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                        phieuXuats.setTitle(phieuXuats.getNhaThuocMaNhaThuoc().equals("9371") ? "PHIẾU BÁN HÀNG" : "PHIẾU XUẤT KHO");
+                        templatePath += "RptPhieuXuat0279.docx";
+                    } else {
+                        phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                        templatePath += userInfo.getNhaThuoc().getIsConnectivity() && userInfo.getNhaThuoc().getIsGeneralPharmacy() ? "RptPhieuXuatKho_CT.docx" : "RptPhieuXuat.docx";
+                    }
+                    break;
+            }
+        } else {
+            if (validMaNhaThuoc.contains(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                phieuXuats.setTitle(phieuXuats.getNhaThuocMaNhaThuoc().equals("9371") ? "PHIẾU BÁN HÀNG" : "PHIẾU XUẤT KHO");
+                templatePath += "RptPhieuXuat0279.docx";
+            }
+            phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+            templatePath += userInfo.getNhaThuoc().getIsConnectivity() && userInfo.getNhaThuoc().getIsGeneralPharmacy() ? "RptPhieuXuatKho_CT.docx" : "RptPhieuXuatKho.docx";
+        }
+        return templatePath;
+    }
+
+    private String handleInKhachLeA5(Profile userInfo, PhieuXuats phieuXuats) {
+        String templatePath = "/template/xuat/";
+        if (!userInfo.getNhaThuoc().getDuocSy().equals("X")) {
+            switch (phieuXuats.getNhaThuocMaNhaThuoc()) {
+                case "0204":
+                    templatePath += "RptPhieuXuatLeBacsyA5.docx";
+                    break;
+                case "4593":
+                case "6530":
+                    templatePath += "RptPhieuXuatKhoA5_4593.docx";
+                    phieuXuats.setGioBan(LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a")));
+                    phieuXuats.setTitle(phieuXuats.getChiTiets().size() + "Khoản");
+                    phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                    break;
+                case "10865":
+                    templatePath += "RptPhieuXuatLeA5_10865.docx";
+                    break;
+                case "11259":
+                    templatePath += "RptPhieuXuatKhoA5_11259.docx";
+                    break;
+                case "12594":
+                case "12595":
+                    templatePath += "RptPhieuXuatKhoA5_12594.docx";
+                    break;
+                case "13439":
+                    templatePath += "RptPhieuXuatA5_13439.docx";
+                    phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien() + phieuXuats.getNoCu()));
+                    break;
+                case "13021":
+                    templatePath += "RptPhieuXuatLeA5_13021.docx";
+                    phieuXuats.setBangChu("ICB - 0974825446 - NGUYEN THI THOA");
+                    phieuXuats.setTitle("PHIẾU XUẤT KHO");
+                    break;
+                default:
+                    if (phieuXuats.getRecordStatusId() != RecordStatusContains.ACTIVE) {
+                        templatePath += "RptPhieuXuatLeA5.docx";
+                    } else {
+                        phieuXuats.setTitle(phieuXuats.getNhaThuocMaNhaThuoc().equals("9371") ? "PHIẾU BÁN HÀNG" : "PHIẾU XUẤT KHO");
+                        phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                        templatePath += "RptPhieuNhatHangA5.docx";
+                    }
+                    break;
+            }
+        } else {
+            phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+            templatePath = "RptPhieuXuatKhoA5.docx";
+        }
+        return templatePath;
+    }
+
+    private String handleInCatLieu80mm(Profile userInfo, PhieuXuats phieuXuats) {
+        String templatePath = "/template/xuat/";
+        if (Arrays.asList("0215", "0653").contains(userInfo.getNhaThuoc().getMaNhaThuocCha())) {
+            this.thuaThieu(phieuXuats);
+            templatePath += "RptPhieuXuatLe80mm-Denhat.docx";
+        }
+        switch (phieuXuats.getNhaThuocMaNhaThuoc()) {
+            case "11259":
+                phieuXuats.setPaymentTypeText(phieuXuats.getPaymentTypeId() == 0 ? "Chuyển khoản" : "Tiền mặt");
+                phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                templatePath += "RptPhieuXuatLe80mm_11259.docx";
+                break;
+            case "11625":
+                phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                templatePath += "RptPhieuXuatLe80mm-12952.docx";
+                break;
+            case "9081":
+                phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+                templatePath += "RptPhieuXuatLe80mm_9081.docx";
+                break;
+            case "13021":
+                templatePath += "RptPhieuXuatLe80mm_13021.docx";
+                phieuXuats.setBangChu("ICB - 0974825446 - NGUYEN THI THOA");
+                phieuXuats.setTitle("HOÁ ĐƠN BÁN LẺ");
+                break;
+            case "0275":
+            case "0104":
+                this.thuaThieu(phieuXuats);
+                templatePath += "RptPhieuXuatLe80mm-0275.docx";
+                break;
+            default:
+                this.thuaThieu(phieuXuats);
+                templatePath += "RptPhieuXuatLe80mm.docx";
+                break;
+        }
+        return templatePath;
     }
 
     public BigDecimal calendarTien(PhieuXuatChiTiets rowTable) {
@@ -777,6 +948,22 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             return thanhTien;
         } else {
             return null;
+        }
+    }
+
+    private void updateUnpaidAmount(PhieuXuats phieuXuats) {
+        Double noCu = getTotalDebtAmountCustomer(phieuXuats.getNhaThuocMaNhaThuoc(), phieuXuats.getKhachHangMaKhachHang(), phieuXuats.getNgayXuat());
+        phieuXuats.setNoCu(noCu);
+        phieuXuats.setConNo(noCu - phieuXuats.getTongTien() > 0 ? noCu - phieuXuats.getTongTien() : 0);
+    }
+
+    private void thuaThieu(PhieuXuats phieuXuats) {
+        if (phieuXuats.getTongTien() > phieuXuats.getDaTra() + phieuXuats.getBackPaymentAmount().doubleValue() - phieuXuats.getDiscount() - phieuXuats.getPaymentScoreAmount()) {
+            phieuXuats.setThuaThieu(phieuXuats.getTongTien() - phieuXuats.getDaTra() - phieuXuats.getDiscount() - phieuXuats.getPaymentScoreAmount());
+            phieuXuats.setThuaThieuText("Tiền nợ:");
+        } else {
+            phieuXuats.setThuaThieu(phieuXuats.getBackPaymentAmount().doubleValue());
+            phieuXuats.setThuaThieuText("Tiền thừa:");
         }
     }
 }
