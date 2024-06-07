@@ -70,6 +70,7 @@ public interface PhieuXuatsRepository extends BaseRepository<PhieuXuats, PhieuXu
             + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
             + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
             + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
+            + " AND (:#{#param.maLoaiXuatNhaps} IS NULL OR c.maLoaiXuatNhap in (:#{#param.maLoaiXuatNhaps})) "
             + " ORDER BY c.id desc"
     )
     Page<PhieuXuats> searchPage(@Param("param") PhieuXuatsReq param, Pageable pageable);
