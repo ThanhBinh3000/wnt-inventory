@@ -159,5 +159,13 @@ public class PhieuNhaps extends BaseEntity {
     @Transient
     private String diaChiNhaCungCap;
     @Transient
+    private Double noCu;
+    @Transient
     private Double conNo;
+    @Transient
+    private String maSoThue;
+    @Transient
+    private String bangChu;
+    @Transient
+    private String title;
 }
