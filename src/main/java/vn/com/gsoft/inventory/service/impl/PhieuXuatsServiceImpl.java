@@ -54,6 +54,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private DonViTinhsRepository donViTinhsRepository;
     private InventoryRepository inventoryRepository;
     private NhaThuocsRepository nhaThuocsRepository;
+    private PickUpOrderRepository pickUpOrderRepository;
     private KafkaProducer kafkaProducer;
     private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
@@ -69,6 +70,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  DonViTinhsRepository donViTinhsRepository,
                                  InventoryRepository inventoryRepository,
                                  NhaThuocsRepository nhaThuocsRepository,
+                                 PickUpOrderRepository pickUpOrderRepository,
                                  PhieuNhapsRepository phieuNhapsRepository,
                                  PhieuThuChisRepository phieuThuChisRepository,
                                  BacSiesRepository bacSiesRepository,
@@ -81,6 +83,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.khachHangsRepository = khachHangsRepository;
         this.nhaCungCapsRepository = nhaCungCapsRepository;
         this.phieuNhapsService = phieuNhapsService;
+        this.pickUpOrderRepository = pickUpOrderRepository;
         this.kafkaProducer = kafkaProducer;
         this.phieuXuatChiTietsRepository = phieuXuatChiTietsRepository;
         this.paymentTypeRepository = paymentTypeRepository;
@@ -380,7 +383,18 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         }
         // xử lý xuất kho
         updateInventory(e);
+        if(e.getPickUpOrderId() != null){
+            updateHandleOrder(e);
+        }
         return e;
+    }
+
+    private void updateHandleOrder(PhieuXuats phieuXuats){
+        Optional<PickUpOrder> pickUpOrder = pickUpOrderRepository.findById(phieuXuats.getPickUpOrderId());
+        if (pickUpOrder.isPresent()){
+            PickUpOrder data = pickUpOrder.get();
+            data.setOrderStatusId(40L);
+        }
     }
 
 
