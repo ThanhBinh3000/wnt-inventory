@@ -628,7 +628,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             throw new Exception("Bad request.");
         try {
             PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-            updateUnpaidAmount(phieuNhaps);
+            this.getInComingCustomerDebt(phieuNhaps);
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = null;
             if (Long.valueOf(ENoteType.Receipt).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())) {
@@ -695,6 +695,43 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         return templatePath;
     }
 
+    public List<PhieuNhaps> getInComingCustomerDebt(PhieuNhaps phieuNhaps) throws Exception {
+        List<PhieuXuats> phieuXuatsList = getValidDeliveryNotes(phieuNhaps);
+        List<PhieuNhaps> phieuNhapsList = getValidReceiptNotes(phieuNhaps);
+        double debtAmount = 0;
+        double returnAmount = 0;
+        if (!phieuXuatsList.isEmpty()) {
+            debtAmount = phieuXuatsList.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - x.getDiscount() - x.getPaymentScoreAmount() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        if (!phieuNhapsList.isEmpty()) {
+            returnAmount = phieuNhapsList.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        phieuNhaps.setNoCu(debtAmount);
+        phieuNhaps.setConNo(returnAmount);
+        return phieuNhapsList;
+    }
+
+    private List<PhieuXuats> getValidDeliveryNotes(PhieuNhaps phieuNhaps) {
+        PhieuXuatsReq phieuXuatsReq = new PhieuXuatsReq();
+        phieuXuatsReq.setNhaThuocMaNhaThuoc(phieuNhaps.getNhaThuocMaNhaThuoc());
+        phieuXuatsReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuXuatsReq.setKhachHangMaKhachHang(phieuNhaps.getKhachHangMaKhachHang());
+        List<PhieuXuats> hdrXuat = phieuXuatsRepository.searchList(phieuXuatsReq);
+        return hdrXuat.stream().filter(item -> Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.Delivery)
+                || Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.InitialSupplierDebt)).collect(Collectors.toList());
+    }
+
+    private List<PhieuNhaps> getValidReceiptNotes(PhieuNhaps phieuNhaps) {
+        PhieuNhapsReq phieuNhapReq = new PhieuNhapsReq();
+        phieuNhapReq.setNhaThuocMaNhaThuoc(phieuNhaps.getNhaThuocMaNhaThuoc());
+        phieuNhapReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuNhapReq.setKhachHangMaKhachHang(phieuNhaps.getKhachHangMaKhachHang());
+        List<PhieuNhaps> hdrNhap = hdrRepo.searchList(phieuNhapReq);
+        return hdrNhap.stream().filter(item -> Objects.equals(item.getLoaiXuatNhapMaLoaiXuatNhap(), ENoteType.ReturnFromCustomer)).collect(Collectors.toList());
+    }
+
     public BigDecimal calendarTien(PhieuNhapChiTiets rowTable) {
         if (rowTable != null) {
             BigDecimal discount = BigDecimal.ZERO;
@@ -712,28 +749,5 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         } else {
             return null;
         }
-    }
-
-    private void updateUnpaidAmount(PhieuNhaps phieuNhaps) {
-        List<PhieuXuats> phieuXuats = getPhieuXuat(phieuNhaps);
-        Double tienNo = phieuXuats.stream()
-                .filter(item -> Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.Delivery))
-                .mapToDouble(child -> child.getTongTien() - child.getDaTra()
-                        - child.getPaymentScoreAmount()
-                        - child.getDiscount()
-                        - child.getDebtPaymentAmount().doubleValue())
-                .sum();
-        Double conNo = tienNo - phieuNhaps.getTongTien();
-        phieuNhaps.setNoCu(tienNo);
-        phieuNhaps.setConNo(conNo > 0 ? conNo : 0);
-    }
-
-    private List<PhieuXuats> getPhieuXuat(PhieuNhaps phieuNhaps) {
-        PhieuXuatsReq phieuXuatsReq = new PhieuXuatsReq();
-        phieuXuatsReq.setRecordStatusId(RecordStatusContains.ACTIVE);
-        phieuXuatsReq.setNhaThuocMaNhaThuoc(phieuNhaps.getNhaThuocMaNhaThuoc());
-        phieuXuatsReq.setKhachHangMaKhachHang(phieuNhaps.getKhachHangMaKhachHang());
-        List<PhieuXuats> phieuXuats = phieuXuatsRepository.searchList(phieuXuatsReq);
-        return phieuXuats.stream().filter(row -> row.getPaymentTypeId() != null).collect(Collectors.toList());
     }
 }
