@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
+import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
@@ -28,6 +29,7 @@ import vn.com.gsoft.inventory.util.system.FileUtils;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -734,7 +736,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         }
         try {
             PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-            updateUnpaidAmount(phieuXuats);
+            getInComingCustomerDebt(phieuXuats);
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             String templatePath = "/template/xuat/";
             if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
@@ -946,6 +948,43 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         return templatePath;
     }
 
+    public List<PhieuXuats> getInComingCustomerDebt(PhieuXuats phieuXuats) throws Exception {
+        List<PhieuXuats> phieuXuatsList = getValidDeliveryNotes(phieuXuats);
+        List<PhieuNhaps> phieuNhapsList = getValidReceiptNotes(phieuXuats);
+        double debtAmount = 0;
+        double returnAmount = 0;
+        if (!phieuXuatsList.isEmpty()) {
+            debtAmount = phieuXuatsList.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - x.getDiscount() - x.getPaymentScoreAmount() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        if (!phieuNhapsList.isEmpty()) {
+            returnAmount = phieuNhapsList.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        phieuXuats.setNoCu(debtAmount);
+        phieuXuats.setConNo(returnAmount);
+        return phieuXuatsList;
+    }
+
+    private List<PhieuXuats> getValidDeliveryNotes(PhieuXuats phieuXuats) {
+        PhieuXuatsReq phieuXuatsReq = new PhieuXuatsReq();
+        phieuXuatsReq.setNhaThuocMaNhaThuoc(phieuXuats.getNhaThuocMaNhaThuoc());
+        phieuXuatsReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuXuatsReq.setKhachHangMaKhachHang(phieuXuats.getKhachHangMaKhachHang());
+        List<PhieuXuats> hdrXuat = hdrRepo.searchList(phieuXuatsReq);
+        return hdrXuat.stream().filter(item -> Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.Delivery)
+                || Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.InitialSupplierDebt)).collect(Collectors.toList());
+    }
+
+    private List<PhieuNhaps> getValidReceiptNotes(PhieuXuats phieuXuats) {
+        PhieuNhapsReq phieuNhapReq = new PhieuNhapsReq();
+        phieuNhapReq.setNhaThuocMaNhaThuoc(phieuXuats.getNhaThuocMaNhaThuoc());
+        phieuNhapReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuNhapReq.setKhachHangMaKhachHang(phieuXuats.getKhachHangMaKhachHang());
+        List<PhieuNhaps> hdrNhap = phieuNhapsRepository.searchList(phieuNhapReq);
+        return hdrNhap.stream().filter(item -> Objects.equals(item.getLoaiXuatNhapMaLoaiXuatNhap(), ENoteType.ReturnFromCustomer)).collect(Collectors.toList());
+    }
+
     public BigDecimal calendarTien(PhieuXuatChiTiets rowTable) {
         if (rowTable != null) {
             BigDecimal discount = BigDecimal.ZERO;
@@ -963,12 +1002,6 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         } else {
             return null;
         }
-    }
-
-    private void updateUnpaidAmount(PhieuXuats phieuXuats) {
-        Double noCu = getTotalDebtAmountCustomer(phieuXuats.getNhaThuocMaNhaThuoc(), phieuXuats.getKhachHangMaKhachHang(), phieuXuats.getNgayXuat());
-        phieuXuats.setNoCu(noCu);
-        phieuXuats.setConNo(noCu - phieuXuats.getTongTien() > 0 ? noCu - phieuXuats.getTongTien() : 0);
     }
 
     private void thuaThieu(PhieuXuats phieuXuats) {
