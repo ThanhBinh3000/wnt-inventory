@@ -29,4 +29,5 @@ public class BaseRequest {
 	private List<Long> recordStatusIds;
 	private PaggingReq paggingReq;
 	private List<Long> listIds;
+	private List<Long> maLoaiXuatNhaps;
 }
