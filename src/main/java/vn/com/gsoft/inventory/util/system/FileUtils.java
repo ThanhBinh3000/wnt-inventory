@@ -8,9 +8,11 @@ import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
 import fr.opensagres.xdocreport.document.IXDocReport;
+import fr.opensagres.xdocreport.document.images.ByteArrayImageProvider;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
+import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
@@ -46,6 +48,9 @@ public class FileUtils {
         ByteArrayOutputStream outputStreamWord = new ByteArrayOutputStream();
         ReportTemplateResponse reportTemplateResponse = new ReportTemplateResponse();
         IXDocReport report = XDocReportRegistry.getRegistry().loadReport(inputFile, TemplateEngineKind.Velocity);
+        FieldsMetadata metadata = new FieldsMetadata();
+        metadata.addFieldAsImage("logo");
+        report.setFieldsMetadata(metadata);
         IContext context = report.createContext();
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("data", data);
@@ -60,13 +65,15 @@ public class FileUtils {
             }
         }
         context.putMap(hashMap);
-//            try {
-//                String barcodeBase64 = generateBarcodeBase64("1234567890", 300, 100);
-//                context.put("barcode", barcodeBase64);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                throw new Exception("Failed to generate barcode.");
-//            }
+        try {
+            String barcodeBase64 = generateBarcodeBase64("1234567890", 300, 100);
+            byte[] imageByteArray = Base64.getDecoder().decode(barcodeBase64);
+            ByteArrayImageProvider imageProvider = new ByteArrayImageProvider(imageByteArray);
+            context.put("logo", imageProvider);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Failed to generate barcode.");
+        }
         report.process(context, outputStreamWord);
         Options options = Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.XWPF);
         report.convert(context, options, outputStreamPdf);
