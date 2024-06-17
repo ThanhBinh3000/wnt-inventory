@@ -229,4 +229,6 @@ public class PhieuXuats extends BaseEntity {
     private String gioBan;
     @Transient
     private BigDecimal scores;
+    @Transient
+    private String barCode;
 }

@@ -639,12 +639,12 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             phieuNhaps.setTargetStoreText(userInfo.getNhaThuoc().getTenNhaThuoc());
             phieuNhaps.setDiaChiNhaThuoc(userInfo.getNhaThuoc().getDiaChi());
             phieuNhaps.setSdtNhaThuoc(userInfo.getNhaThuoc().getDienThoai());
-            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
+            InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
             List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
             allByPhieuNhapMaPhieuNhap.forEach(item -> {
                 item.setThanhTien(this.calendarTien(item));
             });
-            return FileUtils.convertDocxToPdf(templateInputStream, phieuNhaps);
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuNhaps, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -652,7 +652,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     private String handleReceiptType(Profile userInfo, PhieuNhaps phieuNhaps ) {
-        String templatePath = "/template/nhap/";
+        String templatePath = "/nhap/";
         List<String> validMaNhaThuoc = Arrays.asList("3214", "3215", "3216", "3217", "3218", "3219", "3774", "3775", "3776", "3777", "3778", "3779", "3780", "13202");
         phieuNhaps.setBangChu(FileUtils.convertToWords(phieuNhaps.getTongTien()));
         switch (phieuNhaps.getNhaThuocMaNhaThuoc()) {
@@ -680,7 +680,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
     private String handleReturnFromCustomerType(String loai) {
-        String templatePath = "/template/nhap/";
+        String templatePath = "/nhap/";
         switch (loai) {
             case FileUtils.InKhachLe80mm:
                 templatePath += "RptPhieuKhachTraHang_80mm.docx";
