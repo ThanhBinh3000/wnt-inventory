@@ -580,6 +580,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
                     optional.get().setTaxCode(byId.get().getTaxCode());
                     optional.get().setScores(byId.get().getScore());
+                    optional.get().setBarCode(byId.get().getBarCode());
                 }
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
@@ -738,7 +739,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
             getInComingCustomerDebt(phieuXuats);
             String loai = FileUtils.safeToString(hashMap.get("loai"));
-            String templatePath = "/template/xuat/";
+            String templatePath = "/xuat/";
             if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
                 templatePath = handleDeliveryType(userInfo, phieuXuats, loai);
             } else if (Long.valueOf(ENoteType.ReturnToSupplier).equals(phieuXuats.getMaLoaiXuatNhap())) {
@@ -757,10 +758,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             phieuXuats.setTargetStoreText(userInfo.getNhaThuoc().getTenNhaThuoc());
             phieuXuats.setDiaChiNhaThuoc(userInfo.getNhaThuoc().getDiaChi());
             phieuXuats.setSdtNhaThuoc(userInfo.getNhaThuoc().getDienThoai());
-            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
+            InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
             List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
             phieuXuatChiTiets.forEach(item -> item.setThanhTien(calendarTien(item)));
-            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats);
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats, phieuXuats.getBarCode());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -768,7 +769,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     private String handleDeliveryType(Profile userInfo, PhieuXuats phieuXuats, String loai) {
-        String templatePath = "/template/xuat/";
+        String templatePath = "/xuat/";
         switch (loai) {
             case FileUtils.InKhachQuen:
                 templatePath = handleInKhachQuen(userInfo, phieuXuats);
@@ -814,7 +815,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 
     private String handleInKhachQuen(Profile userInfo, PhieuXuats phieuXuats) {
         List<String> validMaNhaThuoc = Arrays.asList("0279", "9371", "0188", "0010", "10146", "9928", "6288", "6287", "0441", "0188", "10562", "11371", "12035", "11386");
-        String templatePath = "/template/xuat/";
+        String templatePath = "/xuat/";
         if (!userInfo.getNhaThuoc().getDuocSy().equals("X")) {
             switch (phieuXuats.getNhaThuocMaNhaThuoc()) {
                 case "5933":
@@ -861,7 +862,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     private String handleInKhachLeA5(Profile userInfo, PhieuXuats phieuXuats) {
-        String templatePath = "/template/xuat/";
+        List<ApplicationSetting> applicationSetting = userInfo.getApplicationSettings();
+        String templatePath = "/xuat/";
         if (!userInfo.getNhaThuoc().getDuocSy().equals("X")) {
             switch (phieuXuats.getNhaThuocMaNhaThuoc()) {
                 case "0204":
@@ -894,7 +896,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     phieuXuats.setTitle("PHIẾU XUẤT KHO");
                     break;
                 default:
-                    if (phieuXuats.getRecordStatusId() != RecordStatusContains.ACTIVE) {
+                    if (!applicationSetting.stream().filter(setting -> setting.getSettingKey().equals("ENABLE_DELIVERY_PICK_UP")).findFirst().isPresent()) {
                         templatePath += "RptPhieuXuatLeA5.docx";
                     } else {
                         phieuXuats.setTitle(phieuXuats.getNhaThuocMaNhaThuoc().equals("9371") ? "PHIẾU BÁN HÀNG" : "PHIẾU XUẤT KHO");
@@ -905,13 +907,13 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             }
         } else {
             phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
-            templatePath = "RptPhieuXuatKhoA5.docx";
+            templatePath += "RptPhieuXuatKhoA5.docx";
         }
         return templatePath;
     }
 
     private String handleInCatLieu80mm(Profile userInfo, PhieuXuats phieuXuats) {
-        String templatePath = "/template/xuat/";
+        String templatePath = "/xuat/";
         if (Arrays.asList("0215", "0653").contains(userInfo.getNhaThuoc().getMaNhaThuocCha())) {
             this.thuaThieu(phieuXuats);
             templatePath += "RptPhieuXuatLe80mm-Denhat.docx";
