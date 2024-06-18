@@ -715,16 +715,23 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     }
 
     private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {
+        int size = e.getChiTiets().size();
+        int index = 1;
+        UUID uuid = UUID.randomUUID();
+        String bathKey = uuid.toString();
         Gson gson = new Gson();
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
             WrapData data = new WrapData();
+            data.setBathKey(bathKey);
             PhieuXuats px = new PhieuXuats();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
             data.setCode(InventoryConstant.XUAT);
             data.setSendDate(new Date());
             data.setData(px);
+            data.setTotal(size);
+            data.setIndex(index++);
             this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
         }
     }

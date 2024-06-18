@@ -607,17 +607,23 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
 
 
     private void updateInventory(PhieuNhaps e) throws ExecutionException, InterruptedException, TimeoutException {
-        Gson gson = new Gson();
+        int size = e.getChiTiets().size();
+        int index = 1;
+        UUID uuid = UUID.randomUUID();
+        String bathKey = uuid.toString();
         for (PhieuNhapChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
             WrapData data = new WrapData();
+            data.setBathKey(bathKey);
             PhieuNhaps px = new PhieuNhaps();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
             data.setCode(InventoryConstant.NHAP);
             data.setSendDate(new Date());
             data.setData(px);
-            this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
+            data.setTotal(size);
+            data.setIndex(index++);
+            this.kafkaProducer.sendInternal(topicName, key, new Gson().toJson(data));
         }
     }
 
