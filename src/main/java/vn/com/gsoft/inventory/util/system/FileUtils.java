@@ -13,11 +13,10 @@ import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
 import io.micrometer.common.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
 
@@ -28,11 +27,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
+@Slf4j
 @Component
 public class FileUtils {
 
-    public static final String InKhachQuen = "1";
-    public static final String InKhachLeA5 = "2";
+    public static final String InPhieuA4 = "1";
+    public static final String InPhieuA5 = "2";
     public static final String InKhachLe80mm = "3";
     public static final String InKhachLe58mm = "4";
     public static final String InLieuDung = "5";
@@ -44,7 +44,6 @@ public class FileUtils {
     private static final String[] units = {"", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"};
     private static final String[] tens = {"", "", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"};
     private static final String[] thousands = {"", "nghìn", "triệu", "tỷ"};
-    private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
     public static ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, String barcode, Object... detail) throws Exception {
         try (ByteArrayOutputStream outputStreamPdf = new ByteArrayOutputStream();

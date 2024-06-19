@@ -231,4 +231,8 @@ public class PhieuXuats extends BaseEntity {
     private BigDecimal scores;
     @Transient
     private String barCode;
+    @Transient
+    private String soTaiKhoan;
+    @Transient
+    private String sizeDetail;
 }

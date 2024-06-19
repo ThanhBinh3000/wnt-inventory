@@ -68,6 +68,8 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     private PhieuXuatChiTietsRepository phieuXuatChiTietsRepository;
     @Autowired
     private PhieuXuatsRepository phieuXuatsRepository;
+    @Autowired
+    private ConfigTemplateRepository configTemplateRepository;
 
     @Autowired
     public PhieuNhapsServiceImpl(PhieuNhapsRepository hdrRepo,
@@ -633,72 +635,33 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         if (userInfo == null)
             throw new Exception("Bad request.");
         try {
-            PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-            this.getInComingCustomerDebt(phieuNhaps);
+            String templatePath = "/nhap/";
             String loai = FileUtils.safeToString(hashMap.get("loai"));
-            String templatePath = null;
-            if (Long.valueOf(ENoteType.Receipt).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())) {
-                templatePath = handleReceiptType(userInfo, phieuNhaps);
-            }else if (Long.valueOf(ENoteType.ReturnFromCustomer).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())){
-                templatePath = handleReturnFromCustomerType(loai);
+            PhieuNhaps phieuNhaps = this.detail(FileUtils.safeToLong(hashMap.get("id")));
+            Integer checkType = 0;
+            if (loai.equals(FileUtils.InPhieuA4) && Long.valueOf(ENoteType.Receipt).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())) {
+                checkType = !userInfo.getNhaThuoc().getIsGeneralPharmacy() ? 1 : 2;
+//                phieuNhaps.setBangChu(FileUtils.convertToWords(phieuNhaps.getTongTien()));
             }
+            Optional<ConfigTemplate> configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(
+                    phieuNhaps.getNhaThuocMaNhaThuoc(), loai, phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap(), checkType);
+            if (configTemplates.isPresent()) {
+                templatePath += configTemplates.get().getTemplateFileName();
+            }
+            getInComingCustomerDebt(phieuNhaps);
             phieuNhaps.setTargetStoreText(userInfo.getNhaThuoc().getTenNhaThuoc());
             phieuNhaps.setDiaChiNhaThuoc(userInfo.getNhaThuoc().getDiaChi());
             phieuNhaps.setSdtNhaThuoc(userInfo.getNhaThuoc().getDienThoai());
             InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
-            List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo.findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
-            allByPhieuNhapMaPhieuNhap.forEach(item -> {
-                item.setThanhTien(this.calendarTien(item));
-            });
+            List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo
+                    .findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
+            allByPhieuNhapMaPhieuNhap.forEach(item -> item.setThanhTien(calendarTien(item)));
             return FileUtils.convertDocxToPdf(templateInputStream, phieuNhaps, null);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private String handleReceiptType(Profile userInfo, PhieuNhaps phieuNhaps ) {
-        String templatePath = "/nhap/";
-        List<String> validMaNhaThuoc = Arrays.asList("3214", "3215", "3216", "3217", "3218", "3219", "3774", "3775", "3776", "3777", "3778", "3779", "3780", "13202");
-        phieuNhaps.setBangChu(FileUtils.convertToWords(phieuNhaps.getTongTien()));
-        switch (phieuNhaps.getNhaThuocMaNhaThuoc()) {
-            case "9371":
-                templatePath += "RptPhieuNhap_9371.docx";
-                break;
-            case "2406":
-            case "4563":
-                templatePath += "RptPhieuNhap_4563.docx";
-                break;
-            case "4593":
-            case "6530":
-                templatePath += "RptPhieuNhap_4593.docx";
-                phieuNhaps.setTitle(phieuNhaps.getChiTiets().size() + "");
-                break;
-            case "12594":
-            case "12595":
-                templatePath += "RptPhieuNhap_12594.docx";
-                break;
-            default:
-                templatePath += !userInfo.getNhaThuoc().getIsGeneralPharmacy() && !validMaNhaThuoc.contains(phieuNhaps.getNhaThuocMaNhaThuoc()) ? "RptPhieuNhap.docx" : "RptPhieuNhapCTY.docx";
-                break;
-        }
-        return templatePath;
-    }
-
-    private String handleReturnFromCustomerType(String loai) {
-        String templatePath = "/nhap/";
-        switch (loai) {
-            case FileUtils.InKhachLe80mm:
-                templatePath += "RptPhieuKhachTraHang_80mm.docx";
-                break;
-            case FileUtils.InKhachQuen:
-                templatePath += "RptPhieuKhachTraHang.docx";
-                break;
-            case FileUtils.InKhachLeA5:
-                templatePath += "RptPhieuKhachTraHangA5.docx";
-                break;
-        }
-        return templatePath;
     }
 
     public List<PhieuNhaps> getInComingCustomerDebt(PhieuNhaps phieuNhaps) throws Exception {
