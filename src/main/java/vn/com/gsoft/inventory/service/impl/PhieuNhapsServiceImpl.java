@@ -656,7 +656,7 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             List<PhieuNhapChiTiets> allByPhieuNhapMaPhieuNhap = dtlRepo
                     .findAllByPhieuNhapMaPhieuNhap(phieuNhaps.getId());
             allByPhieuNhapMaPhieuNhap.forEach(item -> item.setThanhTien(calendarTien(item)));
-            return FileUtils.convertDocxToPdf(templateInputStream, phieuNhaps, null);
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuNhaps, null, null);
 
         } catch (Exception e) {
             e.printStackTrace();

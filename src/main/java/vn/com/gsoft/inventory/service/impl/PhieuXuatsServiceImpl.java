@@ -748,11 +748,26 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             PhieuXuats phieuXuats = detail(FileUtils.safeToLong(hashMap.get("id")));
             String templatePath = getTemplatePath(userInfo, phieuXuats, loai);
             ExampleClass(userInfo, phieuXuats, loai);
-            InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
             List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository
                     .findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
             phieuXuatChiTiets.forEach(item -> item.setThanhTien(calendarTien(item)));
-            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats, phieuXuats.getBarCode(), phieuXuatChiTiets);
+            List<ReportImage> reportImage = new ArrayList<>();
+            if ("10322".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                reportImage.add(new ReportImage("imageLogo_10322", "src/main/resources/template/imageLogo_10322.png"));
+            }
+            if ("11259".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                  reportImage.add(new ReportImage("imageLogo_11259", "src/main/resources/template/imageLogo_11259.png"));
+                  reportImage.add(new ReportImage("imageChuKy_11259", "src/main/resources/template/imageChuKy_11259.png"));
+            }
+            if ("13021".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                reportImage.add(new ReportImage("imageLogo_13021", "src/main/resources/template/imageLogo_13021.png"));
+                reportImage.add(new ReportImage("imageQR_13021", "src/main/resources/template/imageQR_13021.png"));
+            }
+            if ("11625".equals(phieuXuats.getNhaThuocMaNhaThuoc())){
+                reportImage.add(new ReportImage("imageQR_11952", "src/main/resources/template/imageQR_11952.png"));
+            }
+            InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats, phieuXuats.getBarCode(), reportImage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Lỗi trong quá trình tải file.", e);
