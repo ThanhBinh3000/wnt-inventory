@@ -120,4 +120,6 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
     Long findBySoPhieuNhapMax(String nhaThuocMaNhaThuoc, Long maLoaiXuatNhap);
 
     List<PhieuNhaps> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(String maNhaThuoc, Long customerId, Integer status);
+
+    List<PhieuNhaps> findByNhaThuocMaNhaThuocAndNhaCungCapMaNhaCungCap(String maNhaThuoc, Long nhaCungCapMaNhaCungCap);
 }

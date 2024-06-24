@@ -13,21 +13,31 @@ public interface PhieuNhapsService extends BaseService<PhieuNhaps, PhieuNhapsReq
 
     @Transactional
     PhieuNhaps createByPhieuXuats(PhieuXuats e) throws Exception;
+
     @Transactional
     PhieuNhaps updateByPhieuXuats(PhieuXuats e) throws Exception;
 
     PhieuNhaps init(Long maLoaiXuatNhap, Long id) throws Exception;
+
     @Transactional
     PhieuNhaps lock(Long id) throws Exception;
+
     @Transactional
     PhieuNhaps unlock(Long id) throws Exception;
+
     @Transactional
     PhieuNhaps approve(Long id) throws Exception;
+
     @Transactional
     PhieuNhaps cancel(Long id) throws Exception;
+
     @Transactional
     PhieuNhaps medicineSync(Long id);
+
     @Transactional
     PhieuNhaps resetSync(Long id) throws Exception;
+
     ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception;
+
+    Double getDebtPaymentAmount(Long nhaCungCapMaNhaCungCap) throws Exception;
 }

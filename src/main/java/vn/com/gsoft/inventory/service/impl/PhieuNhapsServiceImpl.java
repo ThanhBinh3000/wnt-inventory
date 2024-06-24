@@ -664,6 +664,17 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
         return null;
     }
 
+    @Override
+    public Double getDebtPaymentAmount(Long nhaCungCapMaNhaCungCap) throws Exception {
+        Profile loggedUser = getLoggedUser();
+        List<PhieuNhaps> nps = hdrRepo.findByNhaThuocMaNhaThuocAndNhaCungCapMaNhaCungCap(loggedUser.getNhaThuoc().getMaNhaThuoc(), nhaCungCapMaNhaCungCap);
+        if (!nps.isEmpty()) {
+            return nps.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        return 0.0;
+    }
+
     public List<PhieuNhaps> getInComingCustomerDebt(PhieuNhaps phieuNhaps) throws Exception {
         List<PhieuXuats> phieuXuatsList = getValidDeliveryNotes(phieuNhaps);
         List<PhieuNhaps> phieuNhapsList = getValidReceiptNotes(phieuNhaps);
