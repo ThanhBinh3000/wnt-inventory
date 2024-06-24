@@ -125,7 +125,7 @@ public class PhieuNhapsController {
         return ResponseEntity.ok(ResponseUtils.ok(service.preview(body)));
     }
 
-    @PostMapping(value = "get-debt-payment-amount", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/get-debt-payment-amount", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> getDebtPaymentAmount(@RequestBody PhieuNhapsReq objReq) throws Exception {
         return ResponseEntity.ok(ResponseUtils.ok(service.getDebtPaymentAmount(objReq.getNhaCungCapMaNhaCungCap())));
