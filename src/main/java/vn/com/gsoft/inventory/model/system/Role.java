@@ -18,7 +18,7 @@ public class Role {
     private Boolean isDeleted;
     private String maNhaThuoc;
     private String description;
-    private Integer type;  // 0 mặc định, 1 của nhà thuốc
+    private Long roleTypeId;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date created;
     private Long createdByUserId;
