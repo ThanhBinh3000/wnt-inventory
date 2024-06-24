@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
+import vn.com.gsoft.inventory.entity.Process;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
@@ -716,16 +717,17 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         return true;
     }
 
-    private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {
+    private Process updateInventory(PhieuXuats e) throws Exception {
         int size = e.getChiTiets().size();
         int index = 1;
         UUID uuid = UUID.randomUUID();
-        String bathKey = uuid.toString();
-        Gson gson = new Gson();
+        String batchKey = uuid.toString();
+        Profile userInfo = this.getLoggedUser();
+        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(e), new Date(),size, userInfo.getId());
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
-            WrapData data = new WrapData();
-            data.setBathKey(bathKey);
+            WrapData<PhieuXuats> data = new WrapData<>();
+            data.setBatchKey(batchKey);
             PhieuXuats px = new PhieuXuats();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
@@ -734,8 +736,10 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             data.setData(px);
             data.setTotal(size);
             data.setIndex(index++);
-            this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
+            kafkaProducer.createProcessDtl(process, data);
+            this.kafkaProducer.sendInternal(topicName, key, new Gson().toJson(data));
         }
+        return process;
     }
 
     public ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception {

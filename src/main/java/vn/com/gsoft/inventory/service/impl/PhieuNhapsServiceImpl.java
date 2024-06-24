@@ -15,6 +15,7 @@ import vn.com.gsoft.inventory.constant.ESynStatus;
 import vn.com.gsoft.inventory.constant.InventoryConstant;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
+import vn.com.gsoft.inventory.entity.Process;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
@@ -608,15 +609,17 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
     }
 
 
-    private void updateInventory(PhieuNhaps e) throws ExecutionException, InterruptedException, TimeoutException {
+    private Process updateInventory(PhieuNhaps e) throws Exception {
         int size = e.getChiTiets().size();
         int index = 1;
         UUID uuid = UUID.randomUUID();
-        String bathKey = uuid.toString();
+        String batchKey = uuid.toString();
+        Profile userInfo = this.getLoggedUser();
+        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(e), new Date(),size, userInfo.getId());
         for (PhieuNhapChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
-            WrapData data = new WrapData();
-            data.setBathKey(bathKey);
+            WrapData<PhieuNhaps> data = new WrapData<>();
+            data.setBatchKey(batchKey);
             PhieuNhaps px = new PhieuNhaps();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
@@ -625,8 +628,10 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             data.setData(px);
             data.setTotal(size);
             data.setIndex(index++);
+            kafkaProducer.createProcessDtl(process, data);
             this.kafkaProducer.sendInternal(topicName, key, new Gson().toJson(data));
         }
+        return process;
     }
 
     @Override
