@@ -233,11 +233,16 @@ public class BaseServiceImpl<E extends BaseEntity, R extends BaseRequest, PK ext
     }
 
     @Override
-    public List<E> handleImportExcel(Workbook workbook, List<String> propertyNames, Supplier<E> supplier) throws Exception {
-        List<E> list = new ArrayList<>();
+    public <T> List<T> handleImportExcel(Workbook workbook, List<String> propertyNames, Supplier<T> supplier) throws Exception {
+        return handleImportExcel(workbook, propertyNames, supplier, 1);
+    }
+
+    @Override
+    public <T> List<T> handleImportExcel(Workbook workbook, List<String> propertyNames, Supplier<T> supplier, int index) throws Exception {
+        List<T> list = new ArrayList<>();
         Sheet sheet = workbook.getSheetAt(0);
         Iterator<Row> iterator = sheet.iterator();
-        for (int i = 0; i < 1 && iterator.hasNext(); i++) {
+        for (int i = 0; i < index && iterator.hasNext(); i++) {
             iterator.next();
         }
         while (iterator.hasNext()) {
@@ -246,7 +251,7 @@ public class BaseServiceImpl<E extends BaseEntity, R extends BaseRequest, PK ext
             if (isRowEmpty(currentRow)) {
                 continue;
             }
-            E data = supplier.get();
+            T data = supplier.get();
             for (int i = 0; i < propertyNames.size(); i++) {
                 Cell dataCell = currentRow.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
                 String cellValue = getCellValueAsString(dataCell);

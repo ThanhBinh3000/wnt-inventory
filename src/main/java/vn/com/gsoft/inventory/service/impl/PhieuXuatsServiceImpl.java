@@ -19,6 +19,7 @@ import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.entity.Process;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
+import vn.com.gsoft.inventory.model.dto.PhieuXuatsImport;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
@@ -787,12 +788,12 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        Supplier<PhieuXuats> phieuXuatsSupplier = PhieuXuats::new;
+        Supplier<PhieuXuatsImport> phieuXuatsSupplier = PhieuXuatsImport::new;
         InputStream inputStream = file.getInputStream();
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
-            List<String> propertyNames = Arrays.asList("code", "tenBacSy", "diaChi", "dienThoai"
-                    , "email", "maNhaThuoc");
-            List<PhieuXuats> phieuXuats = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsSupplier));
+            List<String> propertyNames = Arrays.asList("soPhieuXuat", "ngayXuat", "shDon", "ngayHDon"
+                    , "khachHangMaKhachHangText", "daTra", "dienGiai", "maThuoc", "tenThuoc","donViTinh","soLuong","donGia","chietKhau", "vat", "result", "soLo","hanDung","bacSi", "chuanDoan");
+            List<PhieuXuatsImport> phieuXuats = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsSupplier));
 //            phieuXuats.forEach(item -> {
 //                item.setActive(true);
 //                item.setMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
@@ -808,6 +809,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
 //                item.setRecordStatusId(0L);
 //            });
 //            return pushToKafka(bacSies);
+            System.out.println(phieuXuats);
             return null;
         } catch (Exception e) {
             log.error(e.getMessage());
