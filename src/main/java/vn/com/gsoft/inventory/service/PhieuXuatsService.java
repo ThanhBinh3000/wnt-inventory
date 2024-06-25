@@ -2,8 +2,10 @@ package vn.com.gsoft.inventory.service;
 
 
 import jakarta.transaction.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.inventory.entity.PhieuXuats;
 import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
+import vn.com.gsoft.inventory.entity.Process;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 
 import java.util.Date;
@@ -31,4 +33,6 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     PhieuXuats cancel(Long id) throws Exception;
     Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo);
     ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception;
+
+    Process importExcel(MultipartFile file) throws Exception;
 }

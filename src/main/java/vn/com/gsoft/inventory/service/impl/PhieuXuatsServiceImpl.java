@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.entity.Process;
@@ -26,7 +29,7 @@ import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
 import vn.com.gsoft.inventory.util.system.FileUtils;
-
+import vn.com.gsoft.inventory.entity.Process;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -35,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
@@ -776,6 +780,40 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             e.printStackTrace();
             throw new Exception("Lỗi trong quá trình tải file.", e);
         }
+    }
+
+    @Override
+    public Process importExcel(MultipartFile file) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+        Supplier<PhieuXuats> phieuXuatsSupplier = PhieuXuats::new;
+        InputStream inputStream = file.getInputStream();
+        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+            List<String> propertyNames = Arrays.asList("code", "tenBacSy", "diaChi", "dienThoai"
+                    , "email", "maNhaThuoc");
+            List<PhieuXuats> phieuXuats = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsSupplier));
+//            phieuXuats.forEach(item -> {
+//                item.setActive(true);
+//                item.setMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+//                item.setStoreId(0L);
+//                item.setMasterId(0);
+//                item.setMetadataHash(0);
+//                item.setPreMetadataHash(0);
+//                item.setConnectCode("");
+//                item.setConnectPassword("");
+//                item.setIsConnectivity(true);
+//                item.setResultConnect("");
+//                item.setMaNhomBacSy(0L);
+//                item.setRecordStatusId(0L);
+//            });
+//            return pushToKafka(bacSies);
+            return null;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private String getTemplatePath(Profile userInfo, PhieuXuats phieuXuats, String loai) {
