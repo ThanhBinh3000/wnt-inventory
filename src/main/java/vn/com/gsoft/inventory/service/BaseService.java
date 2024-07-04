@@ -37,4 +37,6 @@ public interface BaseService<E, R, PK extends Serializable> {
     <T> List<T> handleImportExcel(Workbook workbook, List<String> propertyNames, Supplier<T> supplier) throws Exception;
 
     <T> List<T> handleImportExcel(Workbook workbook, List<String> propertyNames, Supplier<T> supplier, int index) throws Exception;
+
+    List<String> getRow(Workbook workbook, int rowIndex) throws Exception;
 }

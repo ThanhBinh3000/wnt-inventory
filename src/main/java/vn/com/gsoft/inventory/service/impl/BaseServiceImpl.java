@@ -1,6 +1,7 @@
 package vn.com.gsoft.inventory.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -186,15 +187,25 @@ public class BaseServiceImpl<E extends BaseEntity, R extends BaseRequest, PK ext
             if (fieldType == int.class || fieldType == Integer.class) {
                 field.set(obj, Integer.parseInt(value.toString()));
             } else if (fieldType == float.class || fieldType == Float.class) {
-                field.set(obj, Float.parseFloat(value.toString()));
+                if(!StringUtils.isEmpty(value.toString())){
+                    field.set(obj, Float.parseFloat(value.toString().replaceAll(",","")));
+                }
             } else if (fieldType == double.class || fieldType == Double.class) {
-                field.set(obj, Double.parseDouble(value.toString()));
+                if(!StringUtils.isEmpty(value.toString())) {
+                    field.set(obj, Double.parseDouble(value.toString().replaceAll(",", "")));
+                }
             } else if (fieldType == long.class || fieldType == Long.class) {
-                field.set(obj, Long.parseLong(value.toString()));
+                if(!StringUtils.isEmpty(value.toString())) {
+                    field.set(obj, Long.parseLong(value.toString().replaceAll(",", "")));
+                }
             } else if (fieldType == BigDecimal.class) {
-                field.set(obj, new BigDecimal(value.toString()));
+                if(!StringUtils.isEmpty(value.toString())) {
+                    field.set(obj, new BigDecimal(value.toString().replaceAll(",", "")));
+                }
             } else {
-                field.set(obj, value); // Default case, for other types
+                if(!StringUtils.isEmpty(value.toString())) {
+                    field.set(obj, value); // Default case, for other types
+                }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
@@ -262,5 +273,23 @@ public class BaseServiceImpl<E extends BaseEntity, R extends BaseRequest, PK ext
         workbook.close();
 
         return list;
+    }
+    @Override
+    public List<String> getRow(Workbook workbook, int rowIndex) throws Exception {
+        Sheet sheet = workbook.getSheetAt(0);
+        Row row = sheet.getRow(rowIndex);
+
+        if (row == null) {
+            throw new IllegalArgumentException("Row index " + rowIndex + " is invalid.");
+        }
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < row.getLastCellNum(); i++) {
+            Cell cell = row.getCell(i);
+            if (cell != null) {
+                result.add(cell.getStringCellValue());
+            }
+        }
+
+        return result;
     }
 }

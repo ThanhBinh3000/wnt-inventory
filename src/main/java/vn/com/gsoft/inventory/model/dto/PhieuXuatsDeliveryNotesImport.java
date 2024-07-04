@@ -2,27 +2,26 @@ package vn.com.gsoft.inventory.model.dto;
 
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
-public class PhieuXuatsImport {
+public class PhieuXuatsDeliveryNotesImport {
     private String soPhieuXuat;
-    private Date ngayXuat;
+    private Integer stt;
+    private String ngayXuat;
     private String shDon;
-    private Date ngayHDon;
-    private String khachHangMaKhachHangText;
+    private String ngayHdon;
+    private String tenKhachHang;
     private Double daTra;
     private String dienGiai;
     private String maThuoc;
     private String tenThuoc;
     private String donViTinh;
-    private Long soLuong;
+    private Double soLuong;
     private Double donGia;
     private Double chietKhau;
     private Double vat;
     private Long result;
-    private Long soLo;
-    private Date hanDung;
+    private String soLo;
+    private String hanDung;
     private String bacSi;
     private String chuanDoan;
 
@@ -32,8 +31,8 @@ public class PhieuXuatsImport {
                 "soPhieuXuat='" + soPhieuXuat + '\'' +
                 ", ngayXuat=" + ngayXuat +
                 ", shDon='" + shDon + '\'' +
-                ", ngayHDon=" + ngayHDon +
-                ", khachHangMaKhachHangText='" + khachHangMaKhachHangText + '\'' +
+                ", ngayHdon=" + ngayHdon +
+                ", tenKhachHang='" + tenKhachHang + '\'' +
                 ", daTra=" + daTra +
                 ", dienGiai='" + dienGiai + '\'' +
                 ", maThuoc='" + maThuoc + '\'' +

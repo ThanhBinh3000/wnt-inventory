@@ -17,10 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.entity.Process;
-import vn.com.gsoft.inventory.model.dto.InventoryReq;
-import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsImport;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
+import vn.com.gsoft.inventory.model.dto.*;
 import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
@@ -30,15 +27,13 @@ import vn.com.gsoft.inventory.service.KafkaProducer;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 import vn.com.gsoft.inventory.service.PhieuXuatsService;
 import vn.com.gsoft.inventory.util.system.FileUtils;
-import vn.com.gsoft.inventory.entity.Process;
+
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -67,6 +62,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
+    @Value("${wnt.kafka.internal.consumer.topic.import-trans}")
+    private String topicNameImport;
 
     @Autowired
     public PhieuXuatsServiceImpl(PhieuXuatsRepository hdrRepo, ApplicationSettingService applicationSettingService,
@@ -728,7 +725,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         UUID uuid = UUID.randomUUID();
         String batchKey = uuid.toString();
         Profile userInfo = this.getLoggedUser();
-        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(e), new Date(),size, userInfo.getId());
+        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(e), new Date(), size, userInfo.getId());
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
             WrapData<PhieuXuats> data = new WrapData<>();
@@ -756,7 +753,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             String loai = FileUtils.safeToString(hashMap.get("loai"));
             PhieuXuats phieuXuats = detail(FileUtils.safeToLong(hashMap.get("id")));
             String templatePath = getTemplatePath(userInfo, phieuXuats, loai);
-            ExampleClass(userInfo, phieuXuats, loai);
+            exampleClass(userInfo, phieuXuats, loai);
             List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository
                     .findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
             phieuXuatChiTiets.forEach(item -> item.setThanhTien(calendarTien(item)));
@@ -765,14 +762,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 reportImage.add(new ReportImage("imageLogo_10322", "src/main/resources/template/imageLogo_10322.png"));
             }
             if ("11259".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
-                  reportImage.add(new ReportImage("imageLogo_11259", "src/main/resources/template/imageLogo_11259.png"));
-                  reportImage.add(new ReportImage("imageChuKy_11259", "src/main/resources/template/imageChuKy_11259.png"));
+                reportImage.add(new ReportImage("imageLogo_11259", "src/main/resources/template/imageLogo_11259.png"));
+                reportImage.add(new ReportImage("imageChuKy_11259", "src/main/resources/template/imageChuKy_11259.png"));
             }
             if ("13021".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
                 reportImage.add(new ReportImage("imageLogo_13021", "src/main/resources/template/imageLogo_13021.png"));
                 reportImage.add(new ReportImage("imageQR_13021", "src/main/resources/template/imageQR_13021.png"));
             }
-            if ("11625".equals(phieuXuats.getNhaThuocMaNhaThuoc())){
+            if ("11625".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
                 reportImage.add(new ReportImage("imageQR_11952", "src/main/resources/template/imageQR_11952.png"));
             }
             InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
@@ -788,34 +785,78 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        Supplier<PhieuXuatsImport> phieuXuatsSupplier = PhieuXuatsImport::new;
         InputStream inputStream = file.getInputStream();
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
-            List<String> propertyNames = Arrays.asList("soPhieuXuat", "ngayXuat", "shDon", "ngayHDon"
-                    , "khachHangMaKhachHangText", "daTra", "dienGiai", "maThuoc", "tenThuoc","donViTinh","soLuong","donGia","chietKhau", "vat", "result", "soLo","hanDung","bacSi", "chuanDoan");
-            List<PhieuXuatsImport> phieuXuats = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsSupplier));
-//            phieuXuats.forEach(item -> {
-//                item.setActive(true);
-//                item.setMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
-//                item.setStoreId(0L);
-//                item.setMasterId(0);
-//                item.setMetadataHash(0);
-//                item.setPreMetadataHash(0);
-//                item.setConnectCode("");
-//                item.setConnectPassword("");
-//                item.setIsConnectivity(true);
-//                item.setResultConnect("");
-//                item.setMaNhomBacSy(0L);
-//                item.setRecordStatusId(0L);
-//            });
-//            return pushToKafka(bacSies);
-            System.out.println(phieuXuats);
-            return null;
+            List<String> propertyNames = new ArrayList<>();
+            int index = 0;
+            List<String> row = getRow(workbook, 9);
+            int size = row.size();
+            switch (size) {
+                case 1:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier = PhieuXuatsInvoiceImport::new;
+                    index = 11;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImport = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier, index));
+                    return pushToKafka(phieuXuatsInvoiceImport);
+                case 2:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier2 = PhieuXuatsInvoiceImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuat2s = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier2, index));
+                    break;
+                case 11:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier3 = PhieuXuatsInvoiceImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuat3s = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier3, index));
+                    break;
+                case 17:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier4 = PhieuXuatsInvoiceImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuat4s = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier4, index));
+                    break;
+                case 20:
+                    Supplier<PhieuXuatsDeliveryNotesImport> phieuXuatsDeliveryNotesImportSupplier = PhieuXuatsDeliveryNotesImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsDeliveryNotesImport> phieuXuatsDeliveryNotesImport = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsDeliveryNotesImportSupplier, index));
+                    return pushToKafka(phieuXuatsDeliveryNotesImport);
+                default:
+                    throw new Exception("Template không đúng!");
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
-            e.printStackTrace();
+            throw new Exception(e.getMessage());
         }
         return null;
+    }
+
+    private <T> Process pushToKafka(List<T> phieuXuats) throws Exception {
+        int size = phieuXuats.size();
+        int index = 1;
+        UUID uuid = UUID.randomUUID();
+        String batchKey = uuid.toString();
+        Profile userInfo = this.getLoggedUser();
+        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(phieuXuats), new Date(), size, userInfo.getId());
+        for (T chiTiet : phieuXuats) {
+            String key = userInfo.getNhaThuoc().getMaNhaThuoc();
+            WrapData<T> data = new WrapData<>();
+            data.setBatchKey(batchKey);
+            data.setCode(ImportConstant.PHIEU_XUAT);
+            data.setSendDate(new Date());
+            data.setData(chiTiet);
+            data.setTotal(size);
+            data.setIndex(index++);
+            kafkaProducer.createProcessDtl(process, data);
+            this.kafkaProducer.sendInternal(topicNameImport, key, new Gson().toJson(data));
+        }
+        return process;
     }
 
     private String getTemplatePath(Profile userInfo, PhieuXuats phieuXuats, String loai) {
@@ -840,7 +881,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         return templatePath;
     }
 
-    private void ExampleClass(Profile userInfo, PhieuXuats phieuXuats, String loai) {
+    private void exampleClass(Profile userInfo, PhieuXuats phieuXuats, String loai) {
         if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
             if (loai.equals(FileUtils.InCatLieu80mm) || loai.equals(FileUtils.InKhachLe80mm)) {
                 phieuXuats.setSoTaiKhoan("ICB - 0974825446 - NGUYEN THI THOA");
