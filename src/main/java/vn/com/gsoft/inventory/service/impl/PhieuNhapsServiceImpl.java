@@ -646,10 +646,13 @@ public class PhieuNhapsServiceImpl extends BaseServiceImpl<PhieuNhaps, PhieuNhap
             Integer checkType = 0;
             if (loai.equals(FileUtils.InPhieuA4) && Long.valueOf(ENoteType.Receipt).equals(phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap())) {
                 checkType = !userInfo.getNhaThuoc().getIsGeneralPharmacy() ? 1 : 2;
-//                phieuNhaps.setBangChu(FileUtils.convertToWords(phieuNhaps.getTongTien()));
+                phieuNhaps.setBangChu(FileUtils.convertToWords(phieuNhaps.getTongTien()));
             }
-            Optional<ConfigTemplate> configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(
-                    phieuNhaps.getNhaThuocMaNhaThuoc(), loai, phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap(), checkType);
+            Optional<ConfigTemplate> configTemplates = null;
+            configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(phieuNhaps.getNhaThuocMaNhaThuoc(), loai, phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap(), checkType);
+            if (!configTemplates.isPresent()) {
+                configTemplates = configTemplateRepository.findByPrintTypeAndMaLoaiAndType(loai, phieuNhaps.getLoaiXuatNhapMaLoaiXuatNhap(), checkType);
+            }
             if (configTemplates.isPresent()) {
                 templatePath += configTemplates.get().getTemplateFileName();
             }
