@@ -13,8 +13,10 @@ import vn.com.gsoft.inventory.entity.PhieuXuatChiTiets;
 import vn.com.gsoft.inventory.entity.PhieuXuats;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
+import vn.com.gsoft.inventory.model.system.NhaThuocs;
 import vn.com.gsoft.inventory.model.system.PaggingReq;
 import vn.com.gsoft.inventory.model.system.Profile;
+import vn.com.gsoft.inventory.model.system.Role;
 import vn.com.gsoft.inventory.service.PhieuXuatChiTietsService;
 
 import java.util.ArrayList;
@@ -32,6 +34,12 @@ class PhieuXuatChiTietsServiceImplTest {
     static void beforeAll() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         Profile p = new Profile();
+        Role role = new Role();
+        role.setRoleName("Super User");
+        p.setRoles(List.of(role));
+        NhaThuocs nhaThuocs = new NhaThuocs();
+        nhaThuocs.setMaNhaThuoc("0010");
+        p.setNhaThuoc(nhaThuocs);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(p, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }

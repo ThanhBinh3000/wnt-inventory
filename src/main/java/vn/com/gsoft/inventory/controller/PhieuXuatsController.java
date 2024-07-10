@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.inventory.constant.PathContains;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
@@ -141,4 +142,9 @@ public class PhieuXuatsController {
         return ResponseEntity.ok(ResponseUtils.ok(service.preview(body)));
     }
 
+    @PostMapping(value = PathContains.URL_IMPORT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> importExcel(@RequestParam("file") MultipartFile file) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.importExcel(file)));
+    }
 }

@@ -12,8 +12,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import vn.com.gsoft.inventory.entity.PhieuNhaps;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
+import vn.com.gsoft.inventory.model.system.NhaThuocs;
 import vn.com.gsoft.inventory.model.system.PaggingReq;
 import vn.com.gsoft.inventory.model.system.Profile;
+import vn.com.gsoft.inventory.model.system.Role;
 import vn.com.gsoft.inventory.service.PhieuNhapsService;
 
 import java.util.ArrayList;
@@ -29,6 +31,12 @@ class PhieuNhapsServiceImplTest {
     static void beforeAll() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         Profile p = new Profile();
+        Role role = new Role();
+        role.setRoleName("Super User");
+        p.setRoles(List.of(role));
+        NhaThuocs nhaThuocs = new NhaThuocs();
+        nhaThuocs.setMaNhaThuoc("0010");
+        p.setNhaThuoc(nhaThuocs);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(p, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
@@ -49,5 +57,11 @@ class PhieuNhapsServiceImplTest {
     void detail() throws Exception {
         PhieuNhaps detail = phieuNhapsService.detail(35543753l);
         assert detail != null;
+    }
+
+    @Test
+    void getDebtPaymentAmount() throws Exception {
+        Double o = phieuNhapsService.getDebtPaymentAmount(1l);
+        assert o != null;
     }
 }

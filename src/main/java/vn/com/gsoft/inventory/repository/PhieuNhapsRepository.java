@@ -59,6 +59,7 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
             + " AND (:#{#param.createdByUserId} IS NULL OR c.createdByUserId = :#{#param.createdByUserId}) "
             + " AND (:#{#param.fromDateCreated} IS NULL OR c.created >= :#{#param.fromDateCreated}) "
             + " AND (:#{#param.toDateCreated} IS NULL OR c.created <= :#{#param.toDateCreated}) "
+            + " AND (:#{#param.maLoaiXuatNhaps} IS NULL OR c.loaiXuatNhapMaLoaiXuatNhap in (:#{#param.maLoaiXuatNhaps})) "
             + " ORDER BY c.id desc"
     )
     Page<PhieuNhaps> searchPage(@Param("param") PhieuNhapsReq param, Pageable pageable);
@@ -119,4 +120,6 @@ public interface PhieuNhapsRepository extends BaseRepository<PhieuNhaps, PhieuNh
     Long findBySoPhieuNhapMax(String nhaThuocMaNhaThuoc, Long maLoaiXuatNhap);
 
     List<PhieuNhaps> findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndRecordStatusId(String maNhaThuoc, Long customerId, Integer status);
+
+    List<PhieuNhaps> findByNhaThuocMaNhaThuocAndNhaCungCapMaNhaCungCap(String maNhaThuoc, Long nhaCungCapMaNhaCungCap);
 }

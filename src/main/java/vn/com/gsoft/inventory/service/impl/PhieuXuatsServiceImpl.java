@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,10 +13,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
-import vn.com.gsoft.inventory.model.dto.InventoryReq;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
+import vn.com.gsoft.inventory.entity.Process;
+import vn.com.gsoft.inventory.model.dto.*;
 import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
@@ -28,9 +31,10 @@ import vn.com.gsoft.inventory.util.system.FileUtils;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
@@ -52,10 +56,14 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
     private DonViTinhsRepository donViTinhsRepository;
     private InventoryRepository inventoryRepository;
     private NhaThuocsRepository nhaThuocsRepository;
+    private PickUpOrderRepository pickUpOrderRepository;
+    private ConfigTemplateRepository configTemplateRepository;
     private KafkaProducer kafkaProducer;
     private LoaiXuatNhapsRepository loaiXuatNhapsRepository;
     @Value("${wnt.kafka.internal.consumer.topic.inventory}")
     private String topicName;
+    @Value("${wnt.kafka.internal.consumer.topic.import-trans}")
+    private String topicNameImport;
 
     @Autowired
     public PhieuXuatsServiceImpl(PhieuXuatsRepository hdrRepo, ApplicationSettingService applicationSettingService,
@@ -67,18 +75,21 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  DonViTinhsRepository donViTinhsRepository,
                                  InventoryRepository inventoryRepository,
                                  NhaThuocsRepository nhaThuocsRepository,
+                                 PickUpOrderRepository pickUpOrderRepository,
                                  PhieuNhapsRepository phieuNhapsRepository,
                                  PhieuThuChisRepository phieuThuChisRepository,
                                  BacSiesRepository bacSiesRepository,
                                  PhieuNhapsService phieuNhapsService,
                                  LoaiXuatNhapsRepository loaiXuatNhapsRepository,
-                                 KafkaProducer kafkaProducer) {
+                                 KafkaProducer kafkaProducer,
+                                 ConfigTemplateRepository configTemplateRepository) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.applicationSettingService = applicationSettingService;
         this.khachHangsRepository = khachHangsRepository;
         this.nhaCungCapsRepository = nhaCungCapsRepository;
         this.phieuNhapsService = phieuNhapsService;
+        this.pickUpOrderRepository = pickUpOrderRepository;
         this.kafkaProducer = kafkaProducer;
         this.phieuXuatChiTietsRepository = phieuXuatChiTietsRepository;
         this.paymentTypeRepository = paymentTypeRepository;
@@ -91,6 +102,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.phieuThuChisRepository = phieuThuChisRepository;
         this.loaiXuatNhapsRepository = loaiXuatNhapsRepository;
         this.bacSiesRepository = bacSiesRepository;
+        this.configTemplateRepository = configTemplateRepository;
     }
 
     @Override
@@ -378,7 +390,18 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         }
         // xử lý xuất kho
         updateInventory(e);
+        if (e.getPickUpOrderId() != null) {
+            updateHandleOrder(e);
+        }
         return e;
+    }
+
+    private void updateHandleOrder(PhieuXuats phieuXuats) {
+        Optional<PickUpOrder> pickUpOrder = pickUpOrderRepository.findById(phieuXuats.getPickUpOrderId());
+        if (pickUpOrder.isPresent()) {
+            PickUpOrder data = pickUpOrder.get();
+            data.setOrderStatusId(40L);
+        }
     }
 
 
@@ -467,16 +490,27 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     optional.get().setKhachHangMaKhachHangText(byId.get().getTenKhachHang());
                     optional.get().setDiaChiKhachHang(byId.get().getDiaChi());
                     optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
+                    optional.get().setTaxCode(byId.get().getTaxCode());
+                    optional.get().setScores(byId.get().getScore());
                 }
             }
             if (optional.get().getBacSyMaBacSy() != null && optional.get().getBacSyMaBacSy() > 0) {
                 optional.get().setBacSyMaBacSyText(this.bacSiesRepository.findById(optional.get().getBacSyMaBacSy()).get().getTenBacSy());
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
-                optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
+                Optional<NhaThuocs> byId = nhaThuocsRepository.findById(optional.get().getTargetStoreId());
+                if (byId.isPresent()) {
+                    optional.get().setTargetStoreText(byId.get().getTenNhaThuoc());
+                    optional.get().setDiaChiNhaThuoc(byId.get().getDiaChi());
+                    optional.get().setSdtNhaThuoc(byId.get().getDienThoai());
+                }
             }
             if (optional.get().getNhaCungCapMaNhaCungCap() != null && optional.get().getNhaCungCapMaNhaCungCap() > 0) {
-                optional.get().setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+                Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap());
+                if (byId.isPresent()) {
+                    optional.get().setNhaCungCapMaNhaCungCapText(byId.get().getTenNhaCungCap());
+                    optional.get().setDiaChiNhaCungCap(byId.get().getDiaChi());
+                }
             }
             if (optional.get().getPaymentTypeId() != null && optional.get().getPaymentTypeId() > 0) {
                 optional.get().setPaymentTypeText(this.paymentTypeRepository.findById(optional.get().getPaymentTypeId()).get().getDisplayName());
@@ -549,13 +583,25 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                     optional.get().setKhachHangMaKhachHangText(byId.get().getTenKhachHang());
                     optional.get().setDiaChiKhachHang(byId.get().getDiaChi());
                     optional.get().setSdtKhachHang(byId.get().getSoDienThoai());
+                    optional.get().setTaxCode(byId.get().getTaxCode());
+                    optional.get().setScores(byId.get().getScore());
+                    optional.get().setBarCode(byId.get().getBarCode());
                 }
             }
             if (optional.get().getTargetStoreId() != null && optional.get().getTargetStoreId() > 0) {
-                optional.get().setTargetStoreText(this.nhaThuocsRepository.findById(optional.get().getTargetStoreId()).get().getTenNhaThuoc());
+                Optional<NhaThuocs> byId = nhaThuocsRepository.findById(optional.get().getTargetStoreId());
+                if (byId.isPresent()) {
+                    optional.get().setTargetStoreText(byId.get().getTenNhaThuoc());
+                    optional.get().setDiaChiNhaThuoc(byId.get().getDiaChi());
+                    optional.get().setSdtNhaThuoc(byId.get().getDienThoai());
+                }
             }
             if (optional.get().getNhaCungCapMaNhaCungCap() != null && optional.get().getNhaCungCapMaNhaCungCap() > 0) {
-                optional.get().setNhaCungCapMaNhaCungCapText(this.nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap()).get().getTenNhaCungCap());
+                Optional<NhaCungCaps> byId = nhaCungCapsRepository.findById(optional.get().getNhaCungCapMaNhaCungCap());
+                if (byId.isPresent()) {
+                    optional.get().setNhaCungCapMaNhaCungCapText(byId.get().getTenNhaCungCap());
+                    optional.get().setDiaChiNhaCungCap(byId.get().getDiaChi());
+                }
             }
             if (optional.get().getPaymentTypeId() != null && optional.get().getPaymentTypeId() > 0) {
                 optional.get().setPaymentTypeText(this.paymentTypeRepository.findById(optional.get().getPaymentTypeId()).get().getDisplayName());
@@ -673,71 +719,241 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         return true;
     }
 
-    private void updateInventory(PhieuXuats e) throws ExecutionException, InterruptedException, TimeoutException {
-        Gson gson = new Gson();
+    private Process updateInventory(PhieuXuats e) throws Exception {
+        int size = e.getChiTiets().size();
+        int index = 1;
+        UUID uuid = UUID.randomUUID();
+        String batchKey = uuid.toString();
+        Profile userInfo = this.getLoggedUser();
+        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(e), new Date(), size, userInfo.getId());
         for (PhieuXuatChiTiets chiTiet : e.getChiTiets()) {
             String key = e.getNhaThuocMaNhaThuoc() + "-" + chiTiet.getThuocThuocId();
-            WrapData data = new WrapData();
+            WrapData<PhieuXuats> data = new WrapData<>();
+            data.setBatchKey(batchKey);
             PhieuXuats px = new PhieuXuats();
             BeanUtils.copyProperties(e, px);
             px.setChiTiets(List.copyOf(Collections.singleton(chiTiet)));
             data.setCode(InventoryConstant.XUAT);
             data.setSendDate(new Date());
             data.setData(px);
-            this.kafkaProducer.sendInternal(topicName, key, gson.toJson(data));
+            data.setTotal(size);
+            data.setIndex(index++);
+            kafkaProducer.createProcessDtl(process, data);
+            this.kafkaProducer.sendInternal(topicName, key, new Gson().toJson(data));
+        }
+        return process;
+    }
+
+    public ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception {
+        Profile userInfo = getLoggedUser();
+        if (userInfo == null) {
+            throw new Exception("Bad request.");
+        }
+        try {
+            String loai = FileUtils.safeToString(hashMap.get("loai"));
+            PhieuXuats phieuXuats = detail(FileUtils.safeToLong(hashMap.get("id")));
+            String templatePath = getTemplatePath(userInfo, phieuXuats, loai);
+            exampleClass(userInfo, phieuXuats, loai);
+            List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository
+                    .findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
+            phieuXuatChiTiets.forEach(item -> item.setThanhTien(calendarTien(item)));
+            List<ReportImage> reportImage = new ArrayList<>();
+            if ("10322".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                reportImage.add(new ReportImage("imageLogo_10322", "src/main/resources/template/imageLogo_10322.png"));
+            }
+            if ("11259".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                reportImage.add(new ReportImage("imageLogo_11259", "src/main/resources/template/imageLogo_11259.png"));
+                reportImage.add(new ReportImage("imageChuKy_11259", "src/main/resources/template/imageChuKy_11259.png"));
+            }
+            if ("13021".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                reportImage.add(new ReportImage("imageLogo_13021", "src/main/resources/template/imageLogo_13021.png"));
+                reportImage.add(new ReportImage("imageQR_13021", "src/main/resources/template/imageQR_13021.png"));
+            }
+            if ("11625".equals(phieuXuats.getNhaThuocMaNhaThuoc())) {
+                reportImage.add(new ReportImage("imageQR_11952", "src/main/resources/template/imageQR_11952.png"));
+            }
+            InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath);
+            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats, phieuXuats.getBarCode(), reportImage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Lỗi trong quá trình tải file.", e);
         }
     }
 
     @Override
-    public ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception {
+    public Process importExcel(MultipartFile file) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        try {
-            PhieuXuats phieuXuats = this.detail(FileUtils.safeToLong(hashMap.get("id")));
-            String loai = FileUtils.safeToString(hashMap.get("loai"));
-            String templatePath = null;
-            if (phieuXuats.getMaLoaiXuatNhap().equals(2L)) {
-                templatePath =  "/template/xuatBan/";
-                if (loai.equals("58mm")) {
-                    templatePath += "phieu_khach_le_58mm.docx";
-                }
-                if (loai.equals("80mm")) {
-                    templatePath += "phieu_khach_le_80mm.docx";
-                }
-                if (loai.equals("A4")) {
-                    templatePath += "phieu_khach_quen_A4.docx";
-                }
-                if (loai.equals("A5")) {
-                    templatePath += "phieu_khach_le_A5.docx";
-                }
-                if (loai.equals("thayThe")) {
-                    templatePath += "phieu_ten_thay_the.docx";
-                }
-                if (loai.equals("lieuDung")) {
-                    templatePath += "phieu_lieu_dung.docx";
-                }
+        InputStream inputStream = file.getInputStream();
+        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+            List<String> propertyNames = new ArrayList<>();
+            int index = 0;
+            List<String> row = getRow(workbook, 9);
+            int size = row.size();
+            switch (size) {
+                case 1:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier = PhieuXuatsInvoiceImport::new;
+                    index = 11;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImport = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier, index));
+                    return pushToKafka(phieuXuatsInvoiceImport);
+                case 2:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier2 = PhieuXuatsInvoiceImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuat2s = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier2, index));
+                    break;
+                case 11:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier3 = PhieuXuatsInvoiceImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuat3s = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier3, index));
+                    break;
+                case 17:
+                    Supplier<PhieuXuatsInvoiceImport> phieuXuatsInvoiceImportSupplier4 = PhieuXuatsInvoiceImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsInvoiceImport> phieuXuat4s = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsInvoiceImportSupplier4, index));
+                    break;
+                case 20:
+                    Supplier<PhieuXuatsDeliveryNotesImport> phieuXuatsDeliveryNotesImportSupplier = PhieuXuatsDeliveryNotesImport::new;
+                    index = 2;
+                    propertyNames = Arrays.asList("soPhieuXuat", "stt", "ngayXuat", "shDon", "ngayHdon"
+                            , "tenKhachHang", "daTra", "dienGiai", "maThuoc", "tenThuoc", "donViTinh", "soLuong", "donGia", "chietKhau", "vat", "result", "soLo", "hanDung", "bacSi", "chuanDoan");
+                    List<PhieuXuatsDeliveryNotesImport> phieuXuatsDeliveryNotesImport = new ArrayList<>(handleImportExcel(workbook, propertyNames, phieuXuatsDeliveryNotesImportSupplier, index));
+                    return pushToKafka(phieuXuatsDeliveryNotesImport);
+                default:
+                    throw new Exception("Template không đúng!");
             }
-            InputStream templateInputStream = FileUtils.templateInputStream(templatePath);
-            phieuXuats.setTenNhaThuoc(userInfo.getNhaThuoc().getTenNhaThuoc().toUpperCase());
-            phieuXuats.setDiaChi(userInfo.getNhaThuoc().getDiaChi());
-            phieuXuats.setDienThoai(userInfo.getNhaThuoc().getDienThoai());
-            if (phieuXuats.getTongTien() != null && phieuXuats.getDaTra() != null){
-                phieuXuats.setConNo(phieuXuats.getTongTien() - phieuXuats.getDaTra());
-                phieuXuats.setTienThua(phieuXuats.getDaTra() - phieuXuats.getTongTien());
-            }
-            if (phieuXuats.getScore() != null && phieuXuats.getPreScore() != null){
-                phieuXuats.setDiemThuongCon(phieuXuats.getPreScore().subtract(phieuXuats.getScore()));
-            }
-            List<PhieuXuatChiTiets> phieuXuatChiTiets = phieuXuatChiTietsRepository.findByPhieuXuatMaPhieuXuatAndRecordStatusId(phieuXuats.getId(), RecordStatusContains.ACTIVE);
-            phieuXuatChiTiets.forEach(item -> {
-                item.setThanhTien(calendarTien(item));
-            });
-            return FileUtils.convertDocxToPdf(templateInputStream, phieuXuats);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
+            throw new Exception(e.getMessage());
         }
         return null;
+    }
+
+    private <T> Process pushToKafka(List<T> phieuXuats) throws Exception {
+        int size = phieuXuats.size();
+        int index = 1;
+        UUID uuid = UUID.randomUUID();
+        String batchKey = uuid.toString();
+        Profile userInfo = this.getLoggedUser();
+        Process process = kafkaProducer.createProcess(batchKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(phieuXuats), new Date(), size, userInfo.getId());
+        for (T chiTiet : phieuXuats) {
+            String key = userInfo.getNhaThuoc().getMaNhaThuoc();
+            WrapData<T> data = new WrapData<>();
+            data.setBatchKey(batchKey);
+            data.setCode(ImportConstant.PHIEU_XUAT);
+            data.setSendDate(new Date());
+            data.setData(chiTiet);
+            data.setTotal(size);
+            data.setIndex(index++);
+            kafkaProducer.createProcessDtl(process, data);
+            this.kafkaProducer.sendInternal(topicNameImport, key, new Gson().toJson(data));
+        }
+        return process;
+    }
+
+    private String getTemplatePath(Profile userInfo, PhieuXuats phieuXuats, String loai) {
+        String templatePath = "/xuat/";
+        Integer checkType = 0;
+        boolean isConnectivity = userInfo.getNhaThuoc().getIsConnectivity();
+        boolean isGeneralPharmacy = userInfo.getNhaThuoc().getIsGeneralPharmacy();
+        boolean isDuocSy = "X".equals(userInfo.getNhaThuoc().getDuocSy());
+        if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
+            if (loai.equals(FileUtils.InPhieuA5)) {
+                checkType = userInfo.getApplicationSettings().stream()
+                        .anyMatch(setting -> "ENABLE_DELIVERY_PICK_UP".equals(setting.getSettingKey())) ? 1 : 2;
+            } else if (loai.equals(FileUtils.InPhieuA4)) {
+                checkType = isConnectivity && isGeneralPharmacy ? 1 : (isDuocSy ? 2 : 3);
+            }
+        }
+        Optional<ConfigTemplate> configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(
+                phieuXuats.getNhaThuocMaNhaThuoc(), loai, phieuXuats.getMaLoaiXuatNhap(), checkType);
+        if (configTemplates.isPresent()) {
+            templatePath += configTemplates.get().getTemplateFileName();
+        }
+        return templatePath;
+    }
+
+    private void exampleClass(Profile userInfo, PhieuXuats phieuXuats, String loai) {
+        if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
+            if (loai.equals(FileUtils.InCatLieu80mm) || loai.equals(FileUtils.InKhachLe80mm)) {
+                phieuXuats.setSoTaiKhoan("ICB - 0974825446 - NGUYEN THI THOA");
+                phieuXuats.setTitle("HOÁ ĐƠN BÁN LẺ");
+            } else if (loai.equals(FileUtils.InBuonA4) || loai.equals(FileUtils.InBuon80mm) || loai.equals(FileUtils.InBuonA5)) {
+                phieuXuats.setSoTaiKhoan("BIDV - 3950023944 - NGUYEN THI THOA");
+                phieuXuats.setTitle("PHIẾU BÁN HÀNG");
+            } else if (loai.equals(FileUtils.InPhieuA5)) {
+                phieuXuats.setSizeDetail(phieuXuats.getChiTiets().size() + "Khoản");
+                phieuXuats.setGioBan(LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a")));
+                phieuXuats.setTitle(phieuXuats.getNhaThuocMaNhaThuoc().equals("9371") ? "PHIẾU BÁN HÀNG" : "PHIẾU XUẤT KHO");
+                phieuXuats.setSoTaiKhoan("ICB - 0974825446 - NGUYEN THI THOA");
+            } else if (loai.equals(FileUtils.InPhieuA4)) {
+                phieuXuats.setTitle(phieuXuats.getNhaThuocMaNhaThuoc().equals("9371") ? "PHIẾU BÁN HÀNG" : "PHIẾU XUẤT KHO");
+                phieuXuats.setSoTaiKhoan("ICB - 0974825446 - NGUYEN THI THOA");
+            }
+        }
+        if (Long.valueOf(ENoteType.InventoryAdjustment).equals(phieuXuats.getMaLoaiXuatNhap())) {
+            phieuXuats.setKhachHangMaKhachHangText("Điều chỉnh kiểm kê");
+        }
+        if (Long.valueOf(ENoteType.WarehouseTransfer).equals(phieuXuats.getMaLoaiXuatNhap())) {
+            Optional<NhaThuocs> byIdNhaThuoc = nhaThuocsRepository.findById(phieuXuats.getTargetStoreId());
+            if (byIdNhaThuoc.isPresent()) {
+                phieuXuats.setKhachHangMaKhachHangText(byIdNhaThuoc.get().getTenNhaThuoc());
+                phieuXuats.setDiaChiKhachHang(byIdNhaThuoc.get().getDiaChi());
+            }
+        }
+        if (Long.valueOf(ENoteType.Delivery).equals(phieuXuats.getMaLoaiXuatNhap())) {
+            this.thuaThieu(phieuXuats);
+        }
+        this.getInComingCustomerDebt(phieuXuats);
+        phieuXuats.setBangChu(FileUtils.convertToWords(phieuXuats.getTongTien()));
+        phieuXuats.setTargetStoreText(userInfo.getNhaThuoc().getTenNhaThuoc());
+        phieuXuats.setDiaChiNhaThuoc(userInfo.getNhaThuoc().getDiaChi());
+        phieuXuats.setSdtNhaThuoc(userInfo.getNhaThuoc().getDienThoai());
+    }
+
+    public List<PhieuXuats> getInComingCustomerDebt(PhieuXuats phieuXuats) {
+        List<PhieuXuats> phieuXuatsList = getValidDeliveryNotes(phieuXuats);
+        List<PhieuNhaps> phieuNhapsList = getValidReceiptNotes(phieuXuats);
+        double debtAmount = 0;
+        double returnAmount = 0;
+        if (!phieuXuatsList.isEmpty()) {
+            debtAmount = phieuXuatsList.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - x.getDiscount() - x.getPaymentScoreAmount() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        if (!phieuNhapsList.isEmpty()) {
+            returnAmount = phieuNhapsList.stream()
+                    .mapToDouble(x -> x.getTongTien() - x.getDaTra() - Optional.ofNullable(x.getDebtPaymentAmount()).map(BigDecimal::doubleValue).orElse(0.0)).sum();
+        }
+        phieuXuats.setNoCu(debtAmount);
+        phieuXuats.setConNo(returnAmount);
+        return phieuXuatsList;
+    }
+
+    private List<PhieuXuats> getValidDeliveryNotes(PhieuXuats phieuXuats) {
+        PhieuXuatsReq phieuXuatsReq = new PhieuXuatsReq();
+        phieuXuatsReq.setNhaThuocMaNhaThuoc(phieuXuats.getNhaThuocMaNhaThuoc());
+        phieuXuatsReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuXuatsReq.setKhachHangMaKhachHang(phieuXuats.getKhachHangMaKhachHang());
+        List<PhieuXuats> hdrXuat = hdrRepo.searchList(phieuXuatsReq);
+        return hdrXuat.stream().filter(item -> Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.Delivery)
+                || Objects.equals(item.getMaLoaiXuatNhap(), ENoteType.InitialSupplierDebt)).collect(Collectors.toList());
+    }
+
+    private List<PhieuNhaps> getValidReceiptNotes(PhieuXuats phieuXuats) {
+        PhieuNhapsReq phieuNhapReq = new PhieuNhapsReq();
+        phieuNhapReq.setNhaThuocMaNhaThuoc(phieuXuats.getNhaThuocMaNhaThuoc());
+        phieuNhapReq.setRecordStatusId(RecordStatusContains.ACTIVE);
+        phieuNhapReq.setKhachHangMaKhachHang(phieuXuats.getKhachHangMaKhachHang());
+        List<PhieuNhaps> hdrNhap = phieuNhapsRepository.searchList(phieuNhapReq);
+        return hdrNhap.stream().filter(item -> Objects.equals(item.getLoaiXuatNhapMaLoaiXuatNhap(), ENoteType.ReturnFromCustomer)).collect(Collectors.toList());
     }
 
     public BigDecimal calendarTien(PhieuXuatChiTiets rowTable) {
@@ -756,6 +972,16 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             return thanhTien;
         } else {
             return null;
+        }
+    }
+
+    private void thuaThieu(PhieuXuats phieuXuats) {
+        if (phieuXuats.getTongTien() > phieuXuats.getDaTra() + phieuXuats.getBackPaymentAmount().doubleValue() - phieuXuats.getDiscount() - phieuXuats.getPaymentScoreAmount()) {
+            phieuXuats.setThuaThieu(phieuXuats.getTongTien() - phieuXuats.getDaTra() - phieuXuats.getDiscount() - phieuXuats.getPaymentScoreAmount());
+            phieuXuats.setThuaThieuText("Tiền nợ:");
+        } else {
+            phieuXuats.setThuaThieu(phieuXuats.getBackPaymentAmount().doubleValue());
+            phieuXuats.setThuaThieuText("Tiền thừa:");
         }
     }
 }

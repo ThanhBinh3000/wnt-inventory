@@ -200,11 +200,11 @@ public class PhieuXuats extends BaseEntity {
 
     //    priview
     @Transient
-    private String tenNhaThuoc;
+    private String diaChiNhaThuoc;
     @Transient
-    private String diaChi;
+    private String sdtNhaThuoc;
     @Transient
-    private String dienThoai;
+    private String sdtNhaThuoc2;
     @Transient
     private String diaChiKhachHang;
     @Transient
@@ -212,8 +212,27 @@ public class PhieuXuats extends BaseEntity {
     @Transient
     private Double conNo;
     @Transient
-    private Double tienThua;
+    private Double noCu;
     @Transient
-    private BigDecimal diemThuongCon;
+    private Double thuaThieu;
+    @Transient
+    private String thuaThieuText;
+    @Transient
+    private String diaChiNhaCungCap;
+    @Transient
+    private String bangChu;
+    @Transient
+    private String taxCode;
+    @Transient
+    private String title;
+    @Transient
+    private String gioBan;
+    @Transient
+    private BigDecimal scores;
+    @Transient
+    private String barCode;
+    @Transient
+    private String soTaiKhoan;
+    @Transient
+    private String sizeDetail;
 }
-
