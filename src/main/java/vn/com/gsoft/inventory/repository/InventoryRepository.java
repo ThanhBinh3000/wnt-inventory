@@ -69,7 +69,8 @@ public interface InventoryRepository extends BaseRepository<Inventory, Inventory
     @Query("SELECT c FROM Inventory c " +
             "WHERE 1=1 "
             + " AND (:#{#param.id} IS NULL OR c.id = :#{#param.id}) "
-            + " AND (:#{#param.drugStoreID} IS NULL OR lower(c.drugStoreID) LIKE lower(concat('%',CONCAT(:#{#param.drugStoreID},'%'))))"
+            + " AND ((:#{#param.drugStoreID} IS NULL OR c.drugStoreID = :#{#param.drugStoreID}) "
+            + " OR (:#{#param.parentDrugStoreID} IS NULL OR c.drugStoreID = :#{#param.parentDrugStoreID})) "
             + " AND (:#{#param.drugID} IS NULL OR c.drugID = :#{#param.drugID}) "
             + " AND (:#{#param.lastValue} IS NULL OR c.lastValue = :#{#param.lastValue}) "
             + " AND (:#{#param.drugUnitID} IS NULL OR c.drugUnitID = :#{#param.drugUnitID}) "

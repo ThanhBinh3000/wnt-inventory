@@ -58,7 +58,6 @@ public class InventoryServiceImpl implements InventoryService {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
-        req.setDrugUnitID(Integer.getInteger(userInfo.getNhaThuoc().getMaNhaThuocCha()));
         List<Inventory> inventory = hdrRepo.searchList(req);
         Map<Integer, Double> result = inventory.stream()
                 .collect(Collectors.groupingBy(

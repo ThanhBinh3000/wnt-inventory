@@ -6,10 +6,12 @@ import vn.com.gsoft.inventory.model.system.BaseRequest;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class InventoryReq extends BaseRequest {
     private String drugStoreID;
+    private String parentDrugStoreID;
     private Long drugID;
     private Float lastValue;
     private Integer drugUnitID;
