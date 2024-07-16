@@ -33,6 +33,7 @@ public interface PhieuXuatsService extends BaseService<PhieuXuats, PhieuXuatsReq
     PhieuXuats cancel(Long id) throws Exception;
     Double getTotalDebtAmountCustomer(String maNhaThuoc, Long customerId, Date ngayTinhNo);
     ReportTemplateResponse preview(HashMap<String, Object> hashMap) throws Exception;
+    PhieuXuats convertSampleNoteToDeliveryNote(Long sampleNoteId) throws Exception;
 
     Process importExcel(MultipartFile file) throws Exception;
 }

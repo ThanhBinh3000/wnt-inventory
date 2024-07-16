@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 @Service
 @Log4j2
 public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuatsReq, Long> implements PhieuXuatsService {
+    private final SampleNoteRepository sampleNoteRepository;
+    private final SampleNoteDetailRepository sampleNoteDetailRepository;
     private PhieuXuatsRepository hdrRepo;
     private PhieuXuatChiTietsRepository phieuXuatChiTietsRepository;
     private ApplicationSettingService applicationSettingService;
@@ -86,7 +88,7 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                                  PhieuNhapsService phieuNhapsService,
                                  LoaiXuatNhapsRepository loaiXuatNhapsRepository,
                                  KafkaProducer kafkaProducer,
-                                 ConfigTemplateRepository configTemplateRepository) {
+                                 ConfigTemplateRepository configTemplateRepository, SampleNoteRepository sampleNoteRepository, SampleNoteDetailRepository sampleNoteDetailRepository) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.applicationSettingService = applicationSettingService;
@@ -107,6 +109,8 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
         this.loaiXuatNhapsRepository = loaiXuatNhapsRepository;
         this.bacSiesRepository = bacSiesRepository;
         this.configTemplateRepository = configTemplateRepository;
+        this.sampleNoteRepository = sampleNoteRepository;
+        this.sampleNoteDetailRepository = sampleNoteDetailRepository;
     }
 
     @Override
@@ -782,6 +786,62 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
             e.printStackTrace();
             throw new Exception("Lỗi trong quá trình tải file.", e);
         }
+    }
+
+    @Override
+    public PhieuXuats convertSampleNoteToDeliveryNote(Long sampleNoteId) throws Exception {
+        Profile userInfo = getLoggedUser();
+        if (userInfo == null) {
+            throw new Exception("Bad request.");
+        }
+        var phieuXuat = init(ENoteType.Delivery.longValue(), null);
+        Optional<SampleNote> optional = sampleNoteRepository.findById(sampleNoteId);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        } else {
+            if (optional.get().getRecordStatusId() != RecordStatusContains.ACTIVE) {
+                throw new Exception("Không tìm thấy dữ liệu.");
+            }
+        }
+        SampleNote sampleNote = optional.get();
+        phieuXuat.setIsRefSampleNote(true);
+        phieuXuat.setBacSyMaBacSy(sampleNote.getDoctorId());
+        phieuXuat.setKhachHangMaKhachHang(sampleNote.getPatientId());
+        var khachHangsOptional = khachHangsRepository.findById(sampleNote.getPatientId());
+        if(khachHangsOptional.isPresent()) phieuXuat.setKhachHangMaKhachHangText(khachHangsOptional.get().getTenKhachHang());
+        sampleNote.setChiTiets(sampleNoteDetailRepository.findByNoteID(sampleNote.getId()));
+        List<PhieuXuatChiTiets> chiTiets = new ArrayList<>();
+//        List<Long> thuocIdList = sampleNote.getChiTiets().stream()
+//                .map(SampleNoteDetail::getDrugID)
+//                .collect(Collectors.toList());
+//        List<Thuocs> thuocList = thuocsRepository.findAllByIdIn(thuocIdList);
+//        Map<Long, Thuocs> thuocMap = thuocList.stream()
+//                .collect(Collectors.toMap(
+//                        Thuocs::getId,
+//                        thuoc -> thuoc,
+//                        (existing, replacement) -> replacement
+//                ));
+        sampleNote.getChiTiets().forEach(item -> {
+//            long drugID = item.getDrugID();
+//            Thuocs thuoc = thuocMap.get(drugID);
+//            if (thuoc != null) {
+//                var chiTiet = new PhieuXuatChiTiets();
+//                chiTiet.setThuocThuocId(thuoc.getId());
+//                chiTiet.setThuocs(thuoc);
+//                chiTiet.setSoLuong(item.getQuantity().doubleValue());
+//                chiTiet.setDonViTinhMaDonViTinh(item.getDrugUnitID());
+//                chiTiet.setGiaXuat(item.getDrugUnitID().equals(thuoc.getDonViThuNguyenMaDonViTinh())
+//                        ? thuoc.getGiaBanLe().doubleValue() * thuoc.getHeSo() : thuoc.getGiaBanLe().doubleValue());
+//                chiTiets.add(chiTiet);
+//            }
+            var chiTiet = new PhieuXuatChiTiets();
+                chiTiet.setThuocThuocId(item.getDrugID());
+                chiTiet.setSoLuong(item.getQuantity().doubleValue());
+                chiTiet.setDonViTinhMaDonViTinh(item.getDrugUnitID());
+                chiTiets.add(chiTiet);
+        });
+        phieuXuat.setChiTiets(chiTiets);
+        return phieuXuat;
     }
 
     @Override

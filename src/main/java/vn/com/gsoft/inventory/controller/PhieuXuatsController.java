@@ -142,6 +142,12 @@ public class PhieuXuatsController {
         return ResponseEntity.ok(ResponseUtils.ok(service.preview(body)));
     }
 
+    @GetMapping(value = "/convert-sample-note-to-delivery-note/{sampleNoteId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> convertSampleNoteToDeliveryNote(@PathVariable("sampleNoteId") Long id) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.convertSampleNoteToDeliveryNote(id)));
+    }
+
     @PostMapping(value = PathContains.URL_IMPORT, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<BaseResponse> importExcel(@RequestParam("file") MultipartFile file) throws Exception {
