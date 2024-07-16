@@ -18,8 +18,8 @@ import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
 import org.springframework.stereotype.Component;
-import vn.com.gsoft.inventory.entity.ReportImage;
 import vn.com.gsoft.inventory.entity.ReportTemplateResponse;
+import vn.com.gsoft.inventory.model.dto.ReportImage;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -44,9 +44,18 @@ public class FileUtils {
     public static final String InBuon80mm = "8";
     public static final String InCatLieu80mm = "9";
     public static final String InCatLieu58mm = "10";
-    private static final String[] units = {"", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"};
-    private static final String[] tens = {"", "", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"};
-    private static final String[] thousands = {"", "nghìn", "triệu", "tỷ"};
+    private static final String[] units = {
+            "", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín",
+            "mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm",
+            "mười sáu", "mười bảy", "mười tám", "mười chín"
+    };
+    private static final String[] tens = {
+            "", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi",
+            "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"
+    };
+    private static final String[] thousands = {
+            "", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"
+    };
 
     public static ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, String barcode, List<ReportImage> reportImage) throws Exception {
         try (ByteArrayOutputStream outputStreamPdf = new ByteArrayOutputStream();
@@ -165,6 +174,9 @@ public class FileUtils {
     }
 
     private static String convertLessThanOneThousand(int number) {
+        if (number < 0 || number >= 1000) {
+            throw new IllegalArgumentException("Number out of range: " + number);
+        }
         StringBuilder current = new StringBuilder();
         if (number % 100 < 20) {
             current.append(units[number % 100]);

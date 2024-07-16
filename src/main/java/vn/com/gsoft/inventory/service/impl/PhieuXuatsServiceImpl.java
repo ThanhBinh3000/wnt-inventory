@@ -18,6 +18,10 @@ import vn.com.gsoft.inventory.constant.*;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.entity.Process;
 import vn.com.gsoft.inventory.model.dto.*;
+import vn.com.gsoft.inventory.model.dto.InventoryReq;
+import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
+import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
+import vn.com.gsoft.inventory.model.dto.ReportImage;
 import vn.com.gsoft.inventory.model.system.ApplicationSetting;
 import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.model.system.WrapData;
@@ -873,8 +877,11 @@ public class PhieuXuatsServiceImpl extends BaseServiceImpl<PhieuXuats, PhieuXuat
                 checkType = isConnectivity && isGeneralPharmacy ? 1 : (isDuocSy ? 2 : 3);
             }
         }
-        Optional<ConfigTemplate> configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(
-                phieuXuats.getNhaThuocMaNhaThuoc(), loai, phieuXuats.getMaLoaiXuatNhap(), checkType);
+        Optional<ConfigTemplate> configTemplates = null;
+        configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(phieuXuats.getNhaThuocMaNhaThuoc(), loai, phieuXuats.getMaLoaiXuatNhap(), checkType);
+        if (!configTemplates.isPresent()) {
+            configTemplates = configTemplateRepository.findByPrintTypeAndMaLoaiAndType(loai, phieuXuats.getMaLoaiXuatNhap(), checkType);
+        }
         if (configTemplates.isPresent()) {
             templatePath += configTemplates.get().getTemplateFileName();
         }

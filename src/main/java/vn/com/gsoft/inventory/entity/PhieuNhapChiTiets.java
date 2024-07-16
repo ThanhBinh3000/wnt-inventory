@@ -154,5 +154,7 @@ public class PhieuNhapChiTiets extends BaseEntity {
     private Long targetStoreId;
     @Transient
     private String targetStoreText;
+    @Transient
+    private String tenNhaCungCapThuoc;
 }
 

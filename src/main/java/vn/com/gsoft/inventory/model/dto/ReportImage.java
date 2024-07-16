@@ -1,4 +1,4 @@
-package vn.com.gsoft.inventory.entity;
+package vn.com.gsoft.inventory.model.dto;
 
 import lombok.Data;
 
