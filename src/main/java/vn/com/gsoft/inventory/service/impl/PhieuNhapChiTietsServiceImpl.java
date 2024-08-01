@@ -2,23 +2,26 @@ package vn.com.gsoft.inventory.service.impl;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuNhapChiTietsReq;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
 import vn.com.gsoft.inventory.model.system.PaggingReq;
+import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.repository.*;
 import vn.com.gsoft.inventory.service.PhieuNhapChiTietsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
 import vn.com.gsoft.inventory.util.system.ExportExcel;
+import vn.com.gsoft.inventory.util.system.FileUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +52,8 @@ public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTi
     private NhaThuocsRepository nhaThuocsRepository;
     @Autowired
     private NhaCungCapsRepository nhaCungCapsRepository;
+    @Autowired
+    private ConfigTemplateRepository configTemplateRepository;
 
     @Autowired
     public PhieuNhapChiTietsServiceImpl(PhieuNhapChiTietsRepository hdrRepo) {
@@ -163,18 +168,16 @@ public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTi
         req.setPaggingReq(paggingReq);
         Page<PhieuNhapChiTiets> page = this.searchPage(req);
         List<PhieuNhapChiTiets> dataPage = page.getContent();
-
         String title = "Lịch sử giao dịch";
         String[] rowsName = new String[]{"STT", "Ngày", "Đối tượng", "Loại phiếu", "Tên thuốc", "Đơn vị", "Số lượng", "Đơn giá",
                 "CK", "VAT", "Lô/Hạn", "Sổ đăng ký", "Thành tiền"};
         String fileName = "DsLichSuGiaoDich.xlsx";
         List<Object[]> dataList = new ArrayList<Object[]>();
         Object[] objs = null;
-
         for (int i = 0; i < dataPage.size(); i++) {
             PhieuNhapChiTiets data = dataPage.get(i);
             objs = new Object[rowsName.length];
-            objs[0] = i+1;
+            objs[0] = i + 1;
             objs[1] = data.getNgayNhap();
             objs[2] = data.getSoPhieuNhap();
             objs[3] = "i.CustomerName : i.SupplyerName";
@@ -191,5 +194,32 @@ public class PhieuNhapChiTietsServiceImpl extends BaseServiceImpl<PhieuNhapChiTi
         }
         ExportExcel ex = new ExportExcel(title, fileName, rowsName, dataList, response);
         ex.export();
+    }
+
+    @Override
+    public ReportTemplateResponse preview(List<PhieuNhapChiTietsReq> res) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null) {
+            throw new Exception("Bad request.");
+        }
+        String templatePath = "/lsDaoDich/";
+        Integer checkType = 0;
+        String type = "1";
+        for (PhieuNhapChiTietsReq data : res) {
+            Optional<ConfigTemplate> configTemplates = null;
+            configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(userInfo.getNhaThuoc().getMaNhaThuoc(), type, Long.valueOf(ENoteType.ransactionHistory), checkType);
+            if (!configTemplates.isPresent()) {
+                configTemplates = configTemplateRepository.findByPrintTypeAndMaLoaiAndType(type, Long.valueOf(ENoteType.ransactionHistory), checkType);
+            }
+            if (configTemplates.isPresent()) {
+                templatePath += configTemplates.get().getTemplateFileName();
+            }
+            try (InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath)) {
+                return FileUtils.convertDocxToPdf(templateInputStream, data, null, null, res);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 }

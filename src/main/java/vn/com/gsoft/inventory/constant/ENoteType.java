@@ -61,4 +61,12 @@ public class ENoteType {
     public static final Integer ReceiptMedicalFee = 14;
     //Phiếu dự trù
     public static final Integer NoteReserve = 15;
+    //Phiếu đơn mẫu
+    public static final Integer SampleForm = 16;
+    //Phiếu kiểu kê
+    public static final Integer InventoryForm = 17;
+    //Mã vạch
+    public static final Integer MedicineBarcodeSample = 18;
+    //Lịch sử dao dịch
+    public static final Integer ransactionHistory  = 19;
 }
