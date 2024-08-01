@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import vn.com.gsoft.inventory.model.system.BaseRequest;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -61,4 +62,21 @@ public class PhieuXuatChiTietsReq extends BaseRequest {
     private Date fromDateNgayXuat;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date toDateNgayXuat;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDateTu;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDateDen;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDate;
+    private BigDecimal totalAmount;
+    private String soPhieuXuat;
+    private String khachHangMaKhachHangText;
+    private Long maLoaiXuatNhap;
+    private String tenThuocText;
+    private String donViTinhMaDonViTinhText;
+    private BigDecimal totalThanhTien;
+    private String soLo;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date hanDung;
+    private String maLoaiXuatNhapText;
 }

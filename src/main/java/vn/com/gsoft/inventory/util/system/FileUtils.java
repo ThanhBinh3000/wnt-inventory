@@ -57,13 +57,13 @@ public class FileUtils {
             "", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"
     };
 
-    public static ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, String barcode, List<ReportImage> reportImage) throws Exception {
+    public static ReportTemplateResponse convertDocxToPdf(InputStream inputFile, Object data, String barcode, List<ReportImage> reportImage, Object... detail) throws Exception {
         try (ByteArrayOutputStream outputStreamPdf = new ByteArrayOutputStream();
              ByteArrayOutputStream outputStreamWord = new ByteArrayOutputStream()) {
             ReportTemplateResponse reportTemplateResponse = new ReportTemplateResponse();
             IXDocReport report = XDocReportRegistry.getRegistry().loadReport(inputFile, TemplateEngineKind.Velocity);
             FieldsMetadata metadata = new FieldsMetadata();
-            if (barcode != null) {
+            if (barcode != null && !barcode.isEmpty()) {
                 metadata.addFieldAsImage("imageBarcode");
             }
             if (reportImage != null) {
@@ -71,6 +71,7 @@ public class FileUtils {
                     metadata.addFieldAsImage(image.getNameImage());
                 }
             }
+
             report.setFieldsMetadata(metadata);
             IContext context = report.createContext();
             context.put("data", data);
@@ -78,8 +79,14 @@ public class FileUtils {
             context.put("dateTool", new DateTool());
             context.put("mathTool", new MathTool());
             context.put("locale", new Locale("vi", "VN"));
+            if (detail != null && detail.length > 0) {
+                Object[] detailArray = detail.clone().clone();
+                for (int i = 0; i < detailArray.length; i++) {
+                    context.put("detail" + i, detailArray[i]);
+                }
+            }
             String base64Image = null;
-            if (barcode != null) {
+            if (barcode != null && !barcode.isEmpty()) {
                 base64Image = generateBarcodeBase64(barcode);
                 processBase64Image(base64Image, "imageBarcode", context);
             }

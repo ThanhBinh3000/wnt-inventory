@@ -63,4 +63,18 @@ public class PhieuNhapChiTietsReq  extends BaseRequest {
     private Date fromDateNgayNhap;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date toDateNgayNhap;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDateTu;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDateDen;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date fromDate;
+    private BigDecimal totalAmount;
+    private String soPhieuNhap;
+    private String nhaCungCapMaNhaCungCapText;
+    private String tenThuocText;
+    private String donViTinhMaDonViTinhText;
+    private BigDecimal totalThanhTien;
+    private String maLoaiXuatNhapText;
+
 }

@@ -7,19 +7,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.inventory.constant.ENoteType;
 import vn.com.gsoft.inventory.constant.RecordStatusContains;
 import vn.com.gsoft.inventory.entity.*;
 import vn.com.gsoft.inventory.model.dto.InventoryReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
 import vn.com.gsoft.inventory.model.system.PaggingReq;
+import vn.com.gsoft.inventory.model.system.Profile;
 import vn.com.gsoft.inventory.repository.*;
 import vn.com.gsoft.inventory.service.PhieuXuatChiTietsService;
 import vn.com.gsoft.inventory.util.system.DataUtils;
 import vn.com.gsoft.inventory.util.system.ExportExcel;
+import vn.com.gsoft.inventory.util.system.FileUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -36,6 +42,7 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
     private UserProfileRepository userProfileRepository;
     private NhaThuocsRepository nhaThuocsRepository;
     private NhaCungCapsRepository nhaCungCapsRepository;
+    private ConfigTemplateRepository configTemplateRepository;
 
     @Autowired
     public PhieuXuatChiTietsServiceImpl(PhieuXuatChiTietsRepository hdrRepo,
@@ -46,7 +53,8 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
                                         UserProfileRepository userProfileRepository,
                                         NhaThuocsRepository nhaThuocsRepository,
                                         NhaCungCapsRepository nhaCungCapsRepository,
-                                        InventoryRepository inventoryRepository) {
+                                        InventoryRepository inventoryRepository,
+                                        ConfigTemplateRepository configTemplateRepository) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.thuocsRepository = thuocsRepository;
@@ -57,6 +65,7 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
         this.userProfileRepository = userProfileRepository;
         this.nhaThuocsRepository = nhaThuocsRepository;
         this.nhaCungCapsRepository = nhaCungCapsRepository;
+        this.configTemplateRepository = configTemplateRepository;
     }
 
     @Override
@@ -183,15 +192,12 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
         req.setPaggingReq(paggingReq);
         Page<PhieuXuatChiTiets> page = this.searchPage(req);
         List<PhieuXuatChiTiets> dataPage = page.getContent();
-
-
         String title = "Lịch sử giao dịch";
         String[] rowsName = new String[]{"STT", "Ngày", "Đối tượng", "Loại phiếu", "Tên thuốc", "Đơn vị", "Số lượng", "Đơn giá",
                 "CK", "VAT", "Lô/Hạn", "Sổ đăng ký", "Thành tiền"};
         String fileName = "DsLichSuGiaoDich.xlsx";
         List<Object[]> dataList = new ArrayList<Object[]>();
         Object[] objs = null;
-
         for (int i = 0; i < dataPage.size(); i++) {
             PhieuXuatChiTiets data = dataPage.get(i);
             objs = new Object[rowsName.length];
@@ -214,5 +220,33 @@ public class PhieuXuatChiTietsServiceImpl extends BaseServiceImpl<PhieuXuatChiTi
         ex.export();
     }
 
-
+    @Override
+    public ReportTemplateResponse preview(List<PhieuXuatChiTietsReq> res) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null) {
+            throw new Exception("Bad request.");
+        }
+        String templatePath = "/lsDaoDich/";
+        Integer checkType = 0;
+        String type = "1";
+        for (PhieuXuatChiTietsReq data : res) {
+            Optional<ConfigTemplate> configTemplates = null;
+            configTemplates = configTemplateRepository.findByMaNhaThuocAndPrintTypeAndMaLoaiAndType(userInfo.getNhaThuoc().getMaNhaThuoc(), type, Long.valueOf(ENoteType.ransactionHistory), checkType);
+            if (!configTemplates.isPresent()) {
+                configTemplates = configTemplateRepository.findByPrintTypeAndMaLoaiAndType(type, Long.valueOf(ENoteType.ransactionHistory), checkType);
+            }
+            if (configTemplates.isPresent()) {
+                templatePath += configTemplates.get().getTemplateFileName();
+            }
+            data.setKhachHangMaKhachHangText(
+                    Objects.requireNonNullElse(data.getKhachHangMaKhachHangText(), "Khách hàng lẻ")
+            );
+            try (InputStream templateInputStream = FileUtils.getInputStreamByFileName(templatePath)) {
+                return FileUtils.convertDocxToPdf(templateInputStream, data, null, null, res);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
 }

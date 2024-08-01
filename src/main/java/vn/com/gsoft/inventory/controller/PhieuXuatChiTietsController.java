@@ -10,15 +10,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.inventory.constant.PathContains;
-import vn.com.gsoft.inventory.model.dto.PhieuNhapsReq;
 import vn.com.gsoft.inventory.model.dto.PhieuXuatChiTietsReq;
-import vn.com.gsoft.inventory.model.dto.PhieuXuatsReq;
 import vn.com.gsoft.inventory.model.system.BaseResponse;
 import vn.com.gsoft.inventory.service.PhieuXuatChiTietsService;
-import vn.com.gsoft.inventory.service.PhieuXuatsService;
 import vn.com.gsoft.inventory.util.system.ResponseUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -55,4 +53,9 @@ public class PhieuXuatChiTietsController {
         }
     }
 
+    @PostMapping(value = PathContains.URL_PREVIEW, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<BaseResponse> preview(@RequestBody List<PhieuXuatChiTietsReq> body) throws Exception {
+        return ResponseEntity.ok(ResponseUtils.ok(service.preview(body)));
+    }
 }
